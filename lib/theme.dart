@@ -191,10 +191,10 @@ const _vpDark = AppColors(
   accentText:   Color(0xFF0E1117),
 
   // Semantisch
-  changed:         Color(0xFF9B6DFF),
-  changedSubtle:   Color(0x1A9B6DFF),
-  cancelled:       Color(0xFFE05050),
-  cancelledSubtle: Color(0x1AE05050),
+  changed:         Color(0xFFE8853A),  // Orange — Vordergrund/Border
+  changedSubtle:   Color(0x33C4621A),  // ~component-Helligkeit, kräftiger als vorher
+  cancelled:       Color(0xFFE84B4B),  // Rot — Vordergrund/Border
+  cancelledSubtle: Color(0x33C42020),  // ~component-Helligkeit, kräftiger als vorher
   added:           Color(0xFF4CAF6F),
   addedSubtle:     Color(0x1A4CAF6F),
   notice:          Color(0xFFD4A017),

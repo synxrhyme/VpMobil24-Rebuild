@@ -114,18 +114,25 @@ class WeekdayPageViewState extends State<WeekdayPageView> {
                           geaendertesFach: period.getElement('Fa')?.getAttribute('FaAe'),
                           geaenderterLehrer: period.getElement('Le')?.getAttribute('LeAe'),
                           geaenderterRaum: period.getElement('Ra')?.getAttribute('RaAe'),
+
+                          hinweis: period.getElement('If')?.innerText ?? "",
                         );
 
                         periods.add(createdPeriod);
                       }
+
+                      final Map<int, List<Period>> grouped = {};
+                      for (final period in periods) {
+                        grouped.putIfAbsent(period.stunde, () => []).add(period);
+                      }
+
+                      final List<List<Period>> groupedPeriods = grouped.values.toList();
                       
                       return ListView.builder(
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: periods.length,
+                        physics: ScrollPhysics(),
+                        itemCount: groupedPeriods.length,
                         itemBuilder: (context, periodIndex) {
-                          return PeriodWidget(
-                            period: periods[periodIndex]
-                          );
+                          return PeriodWidget(periods: groupedPeriods[periodIndex]);
                         },
                       );
                     },
@@ -134,36 +141,36 @@ class WeekdayPageViewState extends State<WeekdayPageView> {
                   :
                   
                   Center(
-                      child: Container(
-                        width: 275,
-                        height: 100,
-                        margin: const EdgeInsets.only(bottom: 200),
-                        decoration: BoxDecoration(
-                          color: theme.surface,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              margin: const EdgeInsets.only(right: 25),
-                              child: Icon(
-                                Icons.warning_rounded,
-                                color: theme.notice,
-                                size: 35,
-                              ),
+                    child: Container(
+                      width: 275,
+                      height: 100,
+                      margin: const EdgeInsets.only(bottom: 200),
+                      decoration: BoxDecoration(
+                        color: theme.surface,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.only(right: 25),
+                            child: Icon(
+                              Icons.warning_rounded,
+                              color: theme.notice,
+                              size: 35,
                             ),
-                            Text(
-                              "Keine Daten geladen",
-                              style: TextStyle(
-                                color: theme.notice,
-                                fontFamily: "Space Grotesk",
-                              ),
+                          ),
+                          Text(
+                            "Keine Daten geladen",
+                            style: TextStyle(
+                              color: theme.notice,
+                              fontFamily: "Space Grotesk",
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
+                  ),
             );
           },
         );

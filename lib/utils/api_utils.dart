@@ -56,7 +56,9 @@ Future<Map<DateTime, XmlDocument?>> fetchDates(List<DateTime> dates, String user
         });
 
         if (response.statusCode == 200) {
-          String xml = response.body;
+          final bytes = response.bodyBytes;
+          String xml = utf8.decode(bytes, allowMalformed: true);
+
           if (xml.startsWith('\uFEFF')) xml = xml.substring(1);
           debugPrint("Daten für $formattedDate erfolgreich geladen");
           return MapEntry(date, XmlDocument.parse(xml));

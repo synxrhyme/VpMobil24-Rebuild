@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vpmobil_wrapper/theme.dart';
 import 'package:xml/xml.dart';
 
 class Period {
@@ -20,7 +21,7 @@ class Period {
   final String? geaenderterLehrer;
   final String? geaenderterRaum;
 
-  final String? hinweis;
+  final String hinweis;
 
   Period({
     required this.stunde,
@@ -36,16 +37,16 @@ class Period {
     this.geaendertesFach,
     this.geaenderterLehrer,
     this.geaenderterRaum,
-    this.hinweis,
+    this.hinweis = "",
   });
 }
 
 SubjectChange parseFaAe(XmlElement period) {
-  if (period.getElement("Fa")!.getAttribute("FaAe") == "---") {
+  if (period.getElement("Fa")!.getAttribute("FaAe") == "FaGeaendert" && period.getElement("Fa")!.value == "---") {
     return SubjectChange.entfallen;
   }
 
-  else if (period.getElement("Fa")!.getAttribute("FaAe") != null) {
+  else if (period.getElement("Fa")!.getAttribute("FaAe") == "FaGeaendert") {
     return SubjectChange.geaendert;
   }
   
@@ -60,7 +61,7 @@ TeacherChange? parseLeAe(XmlElement period) {
   }
 
   else {
-    if (period.getElement("Le")!.getAttribute("RaAe") != null) {
+    if (period.getElement("Le")!.getAttribute("LeAe") == "LeGeaendert") {
       return TeacherChange.geaendert;
     }
 
@@ -76,7 +77,7 @@ RoomChange? parseRaAe(XmlElement period) {
   }
 
   else {
-    if (period.getElement("Ra")!.getAttribute("RaAe") != null) {
+    if (period.getElement("Ra")!.getAttribute("RaAe") == "RaGeaendert") {
       return RoomChange.geaendert;
     }
 
@@ -100,4 +101,22 @@ enum TeacherChange {
 enum RoomChange {
   normal,
   geaendert,
+}
+
+extension StringX on String {
+  bool get isBlank => trim().isEmpty;
+}
+
+Map<String, Color> rowColor(Period period, AppColors theme) {
+  if (period.fachAenderung == SubjectChange.entfallen) {
+    return { "background": Colors.pinkAccent, "border": Colors.pinkAccent };
+  }
+
+  if (period.fachAenderung == SubjectChange.geaendert ||
+      period.lehrerAenderung == TeacherChange.geaendert ||
+      period.raumAenderung == RoomChange.geaendert) {
+    return { "background": theme.lessonChangedBg, "border": theme.lessonChangedBorder };
+  }
+  
+  return { "background": theme.component, "border": theme.border };
 }
