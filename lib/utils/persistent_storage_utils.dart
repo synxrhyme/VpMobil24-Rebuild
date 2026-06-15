@@ -8,9 +8,13 @@ Future<File> _getFile(String name) async {
 }
 
 Future<void> savePersistentData(String key, XmlDocument xml) async {
-  final file = await _getFile(key);
-  final xmlString = xml.toXmlString();
-  await file.writeAsString(xmlString);
+  try {
+    final file = await _getFile(key);
+    final xmlString = xml.toXmlString();
+    await file.writeAsString(xmlString);
+  } catch (e) {
+    rethrow;
+  }
 }
 
 Future<XmlDocument?> loadPersistentData(String key) async {
@@ -20,7 +24,8 @@ Future<XmlDocument?> loadPersistentData(String key) async {
 
     return XmlDocument.parse(xmlString);
   } catch (e) {
-    return null;
+    rethrow;
+    //return null;
   }
 }
 

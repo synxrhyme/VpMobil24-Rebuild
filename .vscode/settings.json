@@ -1,23 +1,23 @@
 {
     "cmake.ignoreCMakeListsMissing": true,
     "workbench.colorCustomizations": {
-        "activityBar.activeBackground": "#50ce7e",
-        "activityBar.background": "#50ce7e",
+        "activityBar.activeBackground": "#dff758",
+        "activityBar.background": "#dff758",
         "activityBar.foreground": "#15202b",
         "activityBar.inactiveForeground": "#15202b99",
-        "activityBarBadge.background": "#916ad5",
+        "activityBarBadge.background": "#0ab6d5",
         "activityBarBadge.foreground": "#15202b",
         "commandCenter.border": "#15202b99",
-        "sash.hoverBorder": "#50ce7e",
-        "statusBar.background": "#33b864",
+        "sash.hoverBorder": "#dff758",
+        "statusBar.background": "#d6f527",
         "statusBar.foreground": "#15202b",
-        "statusBarItem.hoverBackground": "#28904e",
-        "statusBarItem.remoteBackground": "#33b864",
+        "statusBarItem.hoverBackground": "#bfdf0a",
+        "statusBarItem.remoteBackground": "#d6f527",
         "statusBarItem.remoteForeground": "#15202b",
-        "titleBar.activeBackground": "#33b864",
+        "titleBar.activeBackground": "#d6f527",
         "titleBar.activeForeground": "#15202b",
-        "titleBar.inactiveBackground": "#33b86499",
+        "titleBar.inactiveBackground": "#d6f52799",
         "titleBar.inactiveForeground": "#15202b99"
     },
-    "peacock.color": "33b864"
+    "peacock.color": "#d6F527"
 }

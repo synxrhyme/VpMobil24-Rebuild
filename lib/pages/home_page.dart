@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:vpmobil_wrapper/components/class_widget.dart';
+import 'package:vpmobil_wrapper/components/class_button.dart';
+import 'package:vpmobil_wrapper/pages/test_page.dart';
+import 'package:vpmobil_wrapper/theme.dart';
 import 'package:vpmobil_wrapper/utils/data_provider.dart';
 import 'package:vpmobil_wrapper/utils/loading_provider.dart';
-import 'package:vpmobil_wrapper/utils/preferences_utils.dart';
+import 'package:vpmobil_wrapper/utils/saved_classes_provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,41 +19,9 @@ class _HomePageState extends State<HomePage> {
   late final DataProvider dataProvider;
   String lastUpdate = "";
 
-  String button1Title = "";
-  String button2Title = "";
-  String button3Title = "";
-  String button4Title = "";
-
-  bool button1Set = false;
-  bool button2Set = false;
-  bool button3Set = false;
-  bool button4Set = false;
-
-  void reloadButtonTitles() async {
-    final t1 = await getString("selected_class_button_1");
-    final t2 = await getString("selected_class_button_2");
-    final t3 = await getString("selected_class_button_3");
-    final t4 = await getString("selected_class_button_4");
-
-    setState(() {
-      button1Title = t1;
-      button1Set   = t1 != "";
-
-      button2Title = t2;
-      button2Set   = t2 != "";
-
-      button3Title = t3;
-      button3Set   = t3 != "";
-
-      button4Title = t4;
-      button4Set   = t4 != "";
-    });
-  }
-
   @override
   void initState() {
     super.initState();
-    reloadButtonTitles();
   }
 
   @override
@@ -69,10 +39,19 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context).extension<AppColors>()!;
+
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 60,
-        backgroundColor: Color.fromARGB(255, 15, 15, 15),
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(0),
+          child: Container(
+            height: 1,
+            color: theme.border
+          ),
+        ),
+        backgroundColor: theme.surface,
         title: Row(
           children: [
             Expanded(child: 
@@ -82,8 +61,8 @@ class _HomePageState extends State<HomePage> {
                   'Vertretungspläne',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 23,
-                    color: const Color.fromARGB(255, 208, 255, 0).withAlpha(200),
+                    fontSize: 25,
+                    color: theme.accent,
                     fontFamily: "Space Grotesk"
                   ),
                 ),
@@ -92,59 +71,112 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      backgroundColor: Color.fromARGB(255, 5, 5, 5),
-      body: Column(
-        children: [
-          SizedBox(
-            height: 100,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              BlankClassWidget(index: 1, title: button1Title, isSet: button1Set, onClassChanged: reloadButtonTitles),
-              BlankClassWidget(index: 2, title: button2Title, isSet: button2Set, onClassChanged: reloadButtonTitles),
-            ],
-          ),
-          SizedBox(
-            height: 100,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              BlankClassWidget(index: 3, title: button3Title, isSet: button3Set, onClassChanged: reloadButtonTitles),
-              BlankClassWidget(index: 4, title: button4Title, isSet: button4Set, onClassChanged: reloadButtonTitles),
-            ],
-          ),
-          SizedBox(
-            height: 100,
-          ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Consumer<DataProvider>(
-                builder: (context, dataProvider, _) {
-                  return Text("Letzte Aktualisierung: $lastUpdate", textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: Colors.white, fontFamily: "Space Grotesk"));
-                }
-              ),
-              SizedBox(height: 25),
-              ElevatedButton(
-                onPressed: () async {
-                  loader.show();
-                  await dataProvider.reload();
-                  loader.hide();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color.fromARGB(255, 20, 20, 20),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+      backgroundColor: theme.base,
+      body: Container(
+        margin: EdgeInsets.only(bottom: 100, top: 100),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              children: [
+                Consumer<SavedClassesProvider>(
+                  builder: (context, savedClassesProvider, _) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        BlankClassWidget(index: 1, isSet: savedClassesProvider.button1Set, title: savedClassesProvider.button1Title),
+                        BlankClassWidget(index: 2, isSet: savedClassesProvider.button2Set, title: savedClassesProvider.button2Title),
+                      ],
+                    );
+                  }
                 ),
-                child: Text("Aktualisieren", style: TextStyle(fontFamily: "Space Grotesk")),
-              )
-            ],
-          )
-        ],
+                SizedBox(
+                  height: 40,
+                ),
+                Consumer<SavedClassesProvider>(
+                  builder: (context, savedClassesProvider, _) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        BlankClassWidget(index: 3, isSet: savedClassesProvider.button3Set, title: savedClassesProvider.button3Title),
+                        BlankClassWidget(index: 4, isSet: savedClassesProvider.button4Set, title: savedClassesProvider.button4Title),
+                      ],
+                    );
+                  }
+                ),
+              ],
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Consumer<DataProvider>(
+                  builder: (context, dataProvider, _) {
+                    if (dataProvider.lastRefresh == null) return Text("Daten wurden noch nicht geladen", textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: Colors.white, fontFamily: "Space Grotesk"));
+        
+                    String formattedDate = "${dataProvider.lastRefresh!.day.toString().padLeft(2, '0')}.${dataProvider.lastRefresh!.month.toString().padLeft(2, '0')}.${dataProvider.lastRefresh!.year.toString()} ${dataProvider.lastRefresh!.hour.toString().padLeft(2, '0')}:${dataProvider.lastRefresh!.minute.toString().padLeft(2, '0')}:${dataProvider.lastRefresh!.second.toString().padLeft(2, '0')}";
+                    return Text("Letzte Aktualisierung: $formattedDate", textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: Colors.white, fontFamily: "Space Grotesk"));
+                  }
+                ),
+                SizedBox(height: 25),
+                ElevatedButton(
+                  onPressed: () async {
+                    loader.show();
+                    await dataProvider.reload();
+                    loader.hide();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.component,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text("Aktualisieren", style: TextStyle(fontFamily: "Space Grotesk")),
+                ),
+                SizedBox(height: 25),
+                ElevatedButton(
+                  onPressed: () async {
+                    await Navigator.of(context).push(
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) => TestPage(),
+                        transitionDuration: Duration(milliseconds: 300),
+                        reverseTransitionDuration: Duration(milliseconds: 300),
+                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                          // Animation beim Rein- und Rausgehen
+                          final inAnimation = Tween<Offset>(
+                            begin: Offset(0.0, 1.0),
+                            end: Offset.zero,
+                          ).chain(CurveTween(curve: Curves.easeInOut));
+
+                          final outAnimation = Tween<Offset>(
+                            begin: Offset.zero,
+                            end: Offset(0.0, 1.0),
+                          ).chain(CurveTween(curve: Curves.easeInOut));
+
+                          return SlideTransition(
+                            position: animation.drive(inAnimation),
+                            child: SlideTransition(
+                              position: secondaryAnimation.drive(outAnimation),
+                              child: child,
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.component,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text("Daten abrufen", style: TextStyle(fontFamily: "Space Grotesk")),
+                ),
+              ],
+            )
+          ],
+        ),
       ),
     );
   }

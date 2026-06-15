@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:vpmobil_wrapper/utils/preferences_utils.dart';
+import 'package:provider/provider.dart';
+import 'package:vpmobil_wrapper/theme.dart';
+import 'package:vpmobil_wrapper/utils/saved_classes_provider.dart';
 
 class ClassListTile extends StatelessWidget {
   final String title;
@@ -8,13 +10,15 @@ class ClassListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context).extension<AppColors>()!;
+
     return ListTile(
-      title: Text(title, style: TextStyle(color: Colors.white.withAlpha(200))),
+      title: Text(title, style: TextStyle(color: theme.textPrimary)),
       onTap: () {
-        setString("selected_class_button_$buttonSourceIndex", title);
+        context.read<SavedClassesProvider>().edit("$buttonSourceIndex", true, title);
         Navigator.pop(context);
       },
-      trailing: Icon(Icons.arrow_right_rounded, size: 30, color: Colors.white.withAlpha(200)),
+      trailing: Icon(Icons.arrow_right_rounded, size: 30, color: theme.textPrimary),
     );
   }
 }

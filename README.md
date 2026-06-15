@@ -1,16 +1,8 @@
-# vpmobil_wrapper
+# VpMobil 24 Rebuild
 
-A new Flutter project.
+A wrapper / rebuild of the VpMobil24 school plan app
+just create .env with credentials and compile for yourself from source using flutter build --release (if finished)
+only operating on zusatz2-server for now
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+only a side project as the original app was bugging on my phone
+if further developed i wanted to implement a server part where the plans are checked every 5min or so and compared for changes affecting you, then sending you a notification for reliable notice of changes

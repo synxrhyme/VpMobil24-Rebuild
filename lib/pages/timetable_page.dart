@@ -1,25 +1,55 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:vpmobil_wrapper/components/weekday_page_view.dart';
 import 'package:vpmobil_wrapper/pages/subject_select_page.dart';
+import 'package:vpmobil_wrapper/theme.dart';
+import 'package:vpmobil_wrapper/utils/data_provider.dart';
+import 'package:vpmobil_wrapper/utils/time_utils.dart';
+import 'package:vpmobil_wrapper/utils/loading_provider.dart';
+import 'package:vpmobil_wrapper/utils/snackbar_utils.dart';
 
 class TimetablePage extends StatefulWidget {
-  final int index;
   final String title;
 
-  const TimetablePage({super.key, required this.index, required this.title});
+  const TimetablePage({super.key, required this.title});
 
   @override
   State<TimetablePage> createState() => _TimetablePageState();
 }
 
 class _TimetablePageState extends State<TimetablePage> {
+  final ValueNotifier<int> currentPage = ValueNotifier(0);
   late final PageController _pageController;
   final GlobalKey<WeekdayPageViewState> childKey = GlobalKey<WeekdayPageViewState>();
+  late final List<DateTime> weekdayDates;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
+    DataProvider dataProvider = context.read<DataProvider>();
+
+    currentPage.value = _pageController.initialPage;
+    _pageController.addListener(() {
+      final page = _pageController.page?.round() ?? 0;
+
+      if (page != currentPage.value) {
+        setState(() {
+          currentPage.value = page;
+        });
+      }
+    });
+
+    if (dataProvider.newestKnownDate == null || dataProvider.newestKnownDate!.isBefore(DateTime.now()) && dataProvider.savedDates.isNotEmpty) {
+      weekdayDates = dataProvider.savedDates;
+    }
+    else {
+      DateTime now = DateTime.now();
+      DateTime mondayThisWeek = now.subtract(Duration(days: now.weekday - 1));
+      DateTime fridayThisWeek = mondayThisWeek.add(const Duration(days: 4));
+      weekdayDates = getWeekdays(mondayThisWeek, fridayThisWeek);
+    }
   }
 
   void nextPage() {
@@ -39,67 +69,39 @@ class _TimetablePageState extends State<TimetablePage> {
   @override
   void dispose() {
     _pageController.dispose();
+    currentPage.dispose();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) {    
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context).extension<AppColors>()!;
+
     return Scaffold(
       appBar: AppBar(
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(0),
+          child: Container(
+            height: 1,
+            color: theme.border
+          ),
+        ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded, color: Colors.white.withAlpha(200)),
+          icon: Icon(Icons.arrow_back_rounded, color: theme.textPrimary),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
         title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Stundenplan ${widget.title}', style: TextStyle(color: Colors.white.withAlpha(200), fontWeight: FontWeight.w500)),
-            IconButton(
-              icon: Icon(Icons.home_rounded),
-              onPressed: () {
-                childKey.currentState?.jumpToToday();
-              },
-            ),
-          ],
-        ),
-        backgroundColor: Color.fromARGB(255, 15, 15, 15),
-      ),
-      backgroundColor: Color.fromARGB(255, 5, 5, 5),
-      body: Column(
-        children: [
-          Container(
-            height: 65,
-            padding: EdgeInsets.only(bottom: 5),
-            decoration: BoxDecoration(
-              color: Color.fromARGB(255, 15, 15, 15),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.center,
+            Text('Stundenplan ${widget.title}', style: TextStyle(color: theme.textPrimary, fontWeight: FontWeight.w500)),
+            Row(
               children: [
-                Material(
-                  borderRadius: BorderRadius.circular(10),
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {
-                      _pageController.previousPage(duration: Duration(milliseconds: 250), curve: Curves.easeOut);
-                    },
-                    borderRadius: BorderRadius.circular(10),
-                    splashColor: Color.fromARGB(255, 55, 55, 55),
-                    child: Ink(
-                      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: Color.fromARGB(255, 25, 25, 25),
-                      ),
-                      child: Text("letzter tag", style: TextStyle(color: Colors.white.withAlpha(200))),
-                    ),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () async {
-                    await Navigator.of(context).push(
+                IconButton(
+                  icon: Icon(Icons.person, color: theme.accent, fontWeight: FontWeight.bold, size: 22),
+                  onPressed: () {
+                    Navigator.of(context).push(
                       PageRouteBuilder(
                         pageBuilder: (context, animation, secondaryAnimation) => SubjectSelectPage(class_: widget.title),
                         transitionDuration: Duration(milliseconds: 300),
@@ -127,39 +129,114 @@ class _TimetablePageState extends State<TimetablePage> {
                       ),
                     );
                   },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Color.fromARGB(255, 25, 25, 25),
-                      shape: BoxShape.circle
-                    ),
-                    padding: EdgeInsets.all(10),
-                    child: Icon(Icons.person_rounded, color: Colors.white.withAlpha(200), size: 25),
-                  ),
                 ),
-                Material(
-                  borderRadius: BorderRadius.circular(10),
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {
-                      _pageController.nextPage(duration: Duration(milliseconds: 250), curve: Curves.easeOut);
-                    },
-                    borderRadius: BorderRadius.circular(10),
-                    splashColor: Color.fromARGB(255, 55, 55, 55),
-                    child: Ink(
-                      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: Color.fromARGB(255, 25, 25, 25),
-                      ),
-                      child: Text("nächster tag", style: TextStyle(color: Colors.white.withAlpha(200))),
-                    ),
-                  ),
+                IconButton(
+                  icon: Icon(Icons.refresh_rounded, color: theme.accent, fontWeight: FontWeight.w600, size: 22),
+                  onPressed: () async {
+                    if (!context.mounted) return;
+                    context.read<LoadingService>().show();
+
+                    bool success = await context.read<DataProvider>().reload();
+
+                    if (!success && context.mounted) {
+                      showErrorNoDataSnackbar();
+                    }
+
+                    if (!context.mounted) return;
+                    context.read<LoadingService>().hide();
+                  },
                 ),
               ],
+            )
+          ],
+        ),
+        backgroundColor: theme.surface
+      ),
+      backgroundColor: theme.base,
+      body: Column(
+        children: [
+          Container(
+            height: 65,
+            padding: EdgeInsets.only(bottom: 5),
+            decoration: BoxDecoration(
+              color: theme.base,
+            ),
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 5),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Material(
+                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        _pageController.previousPage(duration: Duration(milliseconds: 250), curve: Curves.easeOut);
+                      },
+                      borderRadius: BorderRadius.circular(10),
+                      splashColor: Color.fromARGB(255, 55, 55, 55),
+                      child: Ink(
+                        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 17),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: theme.raised,
+                        ),
+                        child: Icon(Icons.arrow_left, color: theme.textPrimary),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 200,
+                    child: ValueListenableBuilder<int>(
+                      valueListenable: currentPage,
+                      builder: (context, index, child) {
+                        final date = weekdayDates[index];
+                        final weekdayName = DateFormat('EEEE', 'de_DE').format(date);
+                        final readableFormattedDate = DateFormat('dd.MM.yyyy').format(date);
+                    
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              weekdayName,
+                              style: const TextStyle(fontSize: 20),
+                            ),
+                            Text(
+                              readableFormattedDate,
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                  Material(
+                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        _pageController.nextPage(duration: Duration(milliseconds: 250), curve: Curves.easeOut);
+                      },
+                      borderRadius: BorderRadius.circular(10),
+                      splashColor: Color.fromARGB(255, 55, 55, 55),
+                      child: Ink(
+                        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 17),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: theme.raised,
+                        ),
+                        child: Icon(Icons.arrow_right, color: theme.textPrimary),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           Expanded(
-            child: WeekdayPageView(pageController: _pageController, title: widget.title, key: childKey),
+            child: WeekdayPageView(weekdayDates: weekdayDates, pageController: _pageController, title: widget.title, key: childKey),
           ),
         ],
       ),
