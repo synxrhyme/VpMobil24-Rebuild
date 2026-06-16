@@ -8,6 +8,7 @@ import 'package:vpmobil_wrapper/utils/init_service.dart';
 import 'package:vpmobil_wrapper/utils/loading_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:vpmobil_wrapper/theme.dart';
+import 'package:vpmobil_wrapper/utils/selected_class_subjects.dart';
 
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 final GlobalKey<NavigatorState> navigatorKey                     = GlobalKey<NavigatorState>();
@@ -86,6 +87,9 @@ class AppRoot extends StatelessWidget {
             ),
           );
         }
+
+        final visibleClassesProvider = SelectedClassSubjects();
+        visibleClassesProvider.reload(context);
     
         return Stack(
           children: [

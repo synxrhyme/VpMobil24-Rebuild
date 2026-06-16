@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vpmobil_wrapper/main.dart';
+import 'package:vpmobil_wrapper/theme.dart';
 
 void hideSnackBarIfVisible() {
   final messengerState = rootScaffoldMessengerKey.currentState;
@@ -44,15 +45,16 @@ void showNetworkErrorSnackBar() {
 
 void showErrorNoDataSnackbar() {
   hideSnackBarIfVisible();
+  final theme = Theme.of(rootScaffoldMessengerKey.currentState!.context).extension<AppColors>()!;
 
   rootScaffoldMessengerKey.currentState?.showSnackBar(
     SnackBar(
       behavior: SnackBarBehavior.floating,
-      dismissDirection: DismissDirection.up,
+      dismissDirection: DismissDirection.horizontal,
       margin: EdgeInsets.only(
-        bottom: 15,
-        left: 15,
-        right: 15,
+        bottom: 30,
+        left: 30,
+        right: 30,
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
       content: Row(
@@ -63,14 +65,15 @@ void showErrorNoDataSnackbar() {
             'Es gibt noch keine Daten\nBitte aktualisiere den Plan',
             style: TextStyle(
               color: Colors.orange,
-              fontFamily: "Space Grotesk"
+              fontSize: 14,
+              fontFamily: "Geist"
             ),
             textAlign: TextAlign.center,
           ),
         ],
       ),
       duration: Duration(seconds: 2),
-      backgroundColor: Color.fromARGB(255, 15, 15, 15),
+      backgroundColor: theme.component,
     ),
   );
 }

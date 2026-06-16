@@ -30,8 +30,10 @@ class AppColors extends ThemeExtension<AppColors> {
     // Semantisch — Kernstück des Vertretungsplans
     required this.changed,
     required this.changedSubtle,
+    required this.changedText,
     required this.cancelled,
     required this.cancelledSubtle,
+    required this.cancelledText,
     required this.added,
     required this.addedSubtle,
     required this.notice,
@@ -57,10 +59,12 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color accentText;
 
   // Semantisch
-  final Color changed;        // Vertretung — Vordergrund
-  final Color changedSubtle;  // Vertretung — Hintergrund/Border
-  final Color cancelled;      // Ausfall — Vordergrund
+  final Color changed;        // Vertretung — Border
+  final Color changedSubtle;  // Vertretung — Hintergrund
+  final Color changedText;    // Vertretung — Schriftfarbe
+  final Color cancelled;      // Ausfall — Border
   final Color cancelledSubtle;
+  final Color cancelledText;  // Ausfall — Schriftfarbe
   final Color added;          // Zusatzstunde — Vordergrund
   final Color addedSubtle;
   final Color notice;         // Hinweis/Raumänderung — Vordergrund
@@ -71,10 +75,12 @@ class AppColors extends ThemeExtension<AppColors> {
   /// Linker Rand + Hintergrund für geänderte Stunden
   Color get lessonChangedBg => changedSubtle;
   Color get lessonChangedBorder => changed;
+  Color get lessonChangedText => changedText;
 
   /// Linker Rand + Hintergrund für ausgefallene Stunden
   Color get lessonCancelledBg => cancelledSubtle;
   Color get lessonCancelledBorder => cancelled;
+  Color get lessonCancelledText => cancelledText;
 
   /// Linker Rand + Hintergrund für Zusatzstunden
   Color get lessonAddedBg => addedSubtle;
@@ -108,8 +114,10 @@ class AppColors extends ThemeExtension<AppColors> {
     Color? accentText,
     Color? changed,
     Color? changedSubtle,
+    Color? changedText,
     Color? cancelled,
     Color? cancelledSubtle,
+    Color? cancelledText,
     Color? added,
     Color? addedSubtle,
     Color? notice,
@@ -130,8 +138,10 @@ class AppColors extends ThemeExtension<AppColors> {
       accentText: accentText ?? this.accentText,
       changed: changed ?? this.changed,
       changedSubtle: changedSubtle ?? this.changedSubtle,
+      changedText: changedText ?? this.changedText,
       cancelled: cancelled ?? this.cancelled,
       cancelledSubtle: cancelledSubtle ?? this.cancelledSubtle,
+      cancelledText: cancelledText ?? this.cancelledText,
       added: added ?? this.added,
       addedSubtle: addedSubtle ?? this.addedSubtle,
       notice: notice ?? this.notice,
@@ -157,8 +167,10 @@ class AppColors extends ThemeExtension<AppColors> {
       accentText: Color.lerp(accentText, other.accentText, t)!,
       changed: Color.lerp(changed, other.changed, t)!,
       changedSubtle: Color.lerp(changedSubtle, other.changedSubtle, t)!,
+      changedText: Color.lerp(changedText, other.changedText, t)!,
       cancelled: Color.lerp(cancelled, other.cancelled, t)!,
       cancelledSubtle: Color.lerp(cancelledSubtle, other.cancelledSubtle, t)!,
+      cancelledText: Color.lerp(cancelledText, other.cancelledText, t)!,
       added: Color.lerp(added, other.added, t)!,
       addedSubtle: Color.lerp(addedSubtle, other.addedSubtle, t)!,
       notice: Color.lerp(notice, other.notice, t)!,
@@ -191,10 +203,12 @@ const _vpDark = AppColors(
   accentText:   Color(0xFF0E1117),
 
   // Semantisch
-  changed:         Color(0xFFE8853A),  // Orange — Vordergrund/Border
-  changedSubtle:   Color(0x33C4621A),  // ~component-Helligkeit, kräftiger als vorher
-  cancelled:       Color(0xFFE84B4B),  // Rot — Vordergrund/Border
-  cancelledSubtle: Color(0x33C42020),  // ~component-Helligkeit, kräftiger als vorher
+  changed:         Color(0xFFB37D52),  // Orange-Border — gedämpft, nah an border-Helligkeit
+  changedSubtle:   Color(0x33C4621A),  // Hintergrund — kräftiges Orange, transparent
+  changedText:     Color(0xFFFFA869),  // Schrift — hell genug für Kontrast auf Subtle-Bg
+  cancelled:       Color(0xFFB35858),  // Rot-Border — gedämpft, nah an border-Helligkeit
+  cancelledSubtle: Color(0x33C42020),  // Hintergrund — kräftiges Rot, transparent
+  cancelledText:   Color(0xFFFF8A8A),  // Schrift — hell genug für Kontrast auf Subtle-Bg
   added:           Color(0xFF4CAF6F),
   addedSubtle:     Color(0x1A4CAF6F),
   notice:          Color(0xFFD4A017),
@@ -221,10 +235,12 @@ const _vpLight = AppColors(
   accentText:   Color(0xFFFFFFFF),
 
   // Semantisch — etwas gedämpfter für hellen Hintergrund
-  changed:         Color(0xFF7040E0),
-  changedSubtle:   Color(0x157040E0),
-  cancelled:       Color(0xFFCC3333),
-  cancelledSubtle: Color(0x15CC3333),
+  changed:         Color(0xFFCC8855),  // Orange-Border — gedämpft, nah an border-Helligkeit
+  changedSubtle:   Color(0x26D9730E),  // Hintergrund — kräftiges Orange, transparent
+  changedText:     Color(0xFF9A5A12),  // Schrift — dunkel genug für Kontrast auf hellem Bg
+  cancelled:       Color(0xFFCC8888),  // Rot-Border — gedämpft, nah an border-Helligkeit
+  cancelledSubtle: Color(0x26CC2222),  // Hintergrund — kräftiges Rot, transparent
+  cancelledText:   Color(0xFFA31E1E),  // Schrift — dunkel genug für Kontrast auf hellem Bg
   added:           Color(0xFF2E8A50),
   addedSubtle:     Color(0x152E8A50),
   notice:          Color(0xFFB58800),
@@ -467,6 +483,7 @@ ThemeData vpLightTheme() {
 //      border: Border(left: BorderSide(color: c.lessonChangedBorder, width: 3)),
 //      borderRadius: BorderRadius.circular(10),
 //    ),
+//    child: Text('Vertretung', style: TextStyle(color: c.lessonChangedText)),
 //  )
 //
 //  Ausfall-Tile:
@@ -476,6 +493,7 @@ ThemeData vpLightTheme() {
 //      border: Border(left: BorderSide(color: c.lessonCancelledBorder, width: 3)),
 //      borderRadius: BorderRadius.circular(10),
 //    ),
+//    child: Text('Entfällt', style: TextStyle(color: c.lessonCancelledText)),
 //  )
 //
 //  "aktuell"-Badge:

@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:vpmobil_wrapper/utils/api_utils.dart';
+import 'package:vpmobil_wrapper/utils/choosable_subject.dart';
 import 'package:vpmobil_wrapper/utils/preferences_utils.dart';
 import 'package:vpmobil_wrapper/utils/time_utils.dart';
 import 'package:flutter/foundation.dart';
@@ -16,9 +19,12 @@ class DataProvider extends ChangeNotifier {
   DateTime? _lastRefresh;
   DateTime? _newestKnownDate;
 
+  Map<String, List<ChoosableSubject>>? _subjectsForClasses;
+
   Map<DateTime, XmlDocument?> get data => _data;
   List<DateTime> get savedDates => _savedDates;
   List<String> get classes => _klassen;
+  Map<String, List<ChoosableSubject>> get subjectsForClasses => _subjectsForClasses ?? {};
 
   DateTime? get lastRefresh => _lastRefresh;
   DateTime? get newestKnownDate => _newestKnownDate;
@@ -70,6 +76,27 @@ class DataProvider extends ChangeNotifier {
 
       List<String>? klassen = await getClasses(newestData);
       if (klassen == null) return false;
+
+      Map<String, List<ChoosableSubject>>? subjectsForClasses = await getSubjectsForClasses(newestData);
+      if (subjectsForClasses == null) return false;
+
+      bool? initialized = await getBool("initializedSubjects");
+      if (initialized == null) return false;
+
+      if (!initialized) {
+        for (MapEntry<String, List<ChoosableSubject>> entry in subjectsForClasses.entries) {
+          Map<String, dynamic> data = {};
+
+          for (ChoosableSubject subject in entry.value) {
+            String number = subject.nummer.toString();
+            data[number] = true;
+          }
+
+          await setString("selectedSubjects_${entry.key}", jsonEncode(data));
+        }
+
+        await setBool("initialized", true);
+      }
 
       await saveList("classes", klassen);
       List<String>? loadedKlassen = await loadList("classes");
@@ -138,6 +165,40 @@ class DataProvider extends ChangeNotifier {
         .whereType<String>()
         .toList();
       return kurzListe;
+    }
+    catch (error) {
+      debugPrint("Fehler beim Laden der Klassen: $error");
+      return null;
+    }
+  }
+
+  Future<Map<String, List<ChoosableSubject>>?> getSubjectsForClasses(XmlDocument data) async {
+    final Map<String, List<ChoosableSubject>> result = {};
+
+    try {
+      final vpMobil = data.getElement('VpMobil');
+      for (final kl in vpMobil!.findAllElements('Kl')) {
+        final kurz = kl.getElement('Kurz')?.innerText ?? "";
+
+        final subjects = <ChoosableSubject>[];
+
+        final unterricht = kl.getElement('Unterricht');
+        if (unterricht != null) {
+          for (final ueNr in unterricht.findAllElements('UeNr')) {
+            subjects.add(
+              ChoosableSubject(
+                lehrerKuerzel: ueNr.getAttribute('UeLe') ?? '',
+                fachKuerzel: ueNr.getAttribute('UeFa') ?? '',
+                nummer: int.parse(ueNr.innerText),
+              ),
+            );
+          }
+        }
+
+        result[kurz] = subjects;
+      }
+
+      return result;
     }
     catch (error) {
       debugPrint("Fehler beim Laden der Klassen: $error");

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vpmobil_wrapper/components/class_button.dart';
-import 'package:vpmobil_wrapper/pages/test_page.dart';
 import 'package:vpmobil_wrapper/theme.dart';
 import 'package:vpmobil_wrapper/utils/data_provider.dart';
 import 'package:vpmobil_wrapper/utils/loading_provider.dart';
@@ -73,7 +72,7 @@ class _HomePageState extends State<HomePage> {
       ),
       backgroundColor: theme.base,
       body: Container(
-        margin: EdgeInsets.only(bottom: 100, top: 100),
+        margin: EdgeInsets.only(bottom: 140, top: 80),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -111,10 +110,10 @@ class _HomePageState extends State<HomePage> {
               children: [
                 Consumer<DataProvider>(
                   builder: (context, dataProvider, _) {
-                    if (dataProvider.lastRefresh == null) return Text("Daten wurden noch nicht geladen", textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: Colors.white, fontFamily: "Space Grotesk"));
+                    if (dataProvider.lastRefresh == null) return Text("Daten wurden noch nicht geladen", textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: Colors.white, fontFamily: "Geist"));
         
                     String formattedDate = "${dataProvider.lastRefresh!.day.toString().padLeft(2, '0')}.${dataProvider.lastRefresh!.month.toString().padLeft(2, '0')}.${dataProvider.lastRefresh!.year.toString()} ${dataProvider.lastRefresh!.hour.toString().padLeft(2, '0')}:${dataProvider.lastRefresh!.minute.toString().padLeft(2, '0')}:${dataProvider.lastRefresh!.second.toString().padLeft(2, '0')}";
-                    return Text("Letzte Aktualisierung: $formattedDate", textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: Colors.white, fontFamily: "Space Grotesk"));
+                    return Text("Letzte Aktualisierung: $formattedDate", textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: Colors.white, fontFamily: "Geist"));
                   }
                 ),
                 SizedBox(height: 25),
@@ -131,47 +130,7 @@ class _HomePageState extends State<HomePage> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: Text("Aktualisieren", style: TextStyle(fontFamily: "Space Grotesk")),
-                ),
-                SizedBox(height: 25),
-                ElevatedButton(
-                  onPressed: () async {
-                    await Navigator.of(context).push(
-                      PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) => TestPage(),
-                        transitionDuration: Duration(milliseconds: 300),
-                        reverseTransitionDuration: Duration(milliseconds: 300),
-                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                          // Animation beim Rein- und Rausgehen
-                          final inAnimation = Tween<Offset>(
-                            begin: Offset(0.0, 1.0),
-                            end: Offset.zero,
-                          ).chain(CurveTween(curve: Curves.easeInOut));
-
-                          final outAnimation = Tween<Offset>(
-                            begin: Offset.zero,
-                            end: Offset(0.0, 1.0),
-                          ).chain(CurveTween(curve: Curves.easeInOut));
-
-                          return SlideTransition(
-                            position: animation.drive(inAnimation),
-                            child: SlideTransition(
-                              position: secondaryAnimation.drive(outAnimation),
-                              child: child,
-                            ),
-                          );
-                        },
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.component,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: Text("Daten abrufen", style: TextStyle(fontFamily: "Space Grotesk")),
+                  child: Text("Aktualisieren", style: TextStyle(fontFamily: "Geist", fontSize: 15, letterSpacing: 0.5)),
                 ),
               ],
             )

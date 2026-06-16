@@ -95,7 +95,7 @@ class _TimetablePageState extends State<TimetablePage> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Stundenplan ${widget.title}', style: TextStyle(color: theme.textPrimary, fontWeight: FontWeight.w500)),
+            Text('Stundenplan ${widget.title}', style: TextStyle(color: theme.textPrimary, fontFamily: "Geist", fontSize: 19, fontWeight: FontWeight.w500)),
             Row(
               children: [
                 IconButton(
@@ -103,7 +103,7 @@ class _TimetablePageState extends State<TimetablePage> {
                   onPressed: () {
                     Navigator.of(context).push(
                       PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) => SubjectSelectPage(class_: widget.title),
+                        pageBuilder: (context, animation, secondaryAnimation) => SubjectSelectPage(title: widget.title),
                         transitionDuration: Duration(milliseconds: 300),
                         reverseTransitionDuration: Duration(milliseconds: 300),
                         transitionsBuilder: (context, animation, secondaryAnimation, child) {

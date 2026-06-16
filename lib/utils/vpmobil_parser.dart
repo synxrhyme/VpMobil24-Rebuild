@@ -109,14 +109,14 @@ extension StringX on String {
 
 Map<String, Color> rowColor(Period period, AppColors theme) {
   if (period.fachAenderung == SubjectChange.entfallen) {
-    return { "background": Colors.pinkAccent, "border": Colors.pinkAccent };
+    return { "background": Colors.pinkAccent, "border": Colors.pinkAccent, "text": theme.lessonCancelledText };
   }
 
   if (period.fachAenderung == SubjectChange.geaendert ||
       period.lehrerAenderung == TeacherChange.geaendert ||
       period.raumAenderung == RoomChange.geaendert) {
-    return { "background": theme.lessonChangedBg, "border": theme.lessonChangedBorder };
+    return { "background": theme.lessonChangedBg, "border": theme.lessonChangedBorder, "text": theme.lessonChangedText };
   }
   
-  return { "background": theme.component, "border": theme.border };
+  return { "background": theme.component, "border": theme.border, "text": theme.textSecondary };
 }

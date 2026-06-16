@@ -103,24 +103,7 @@ class BlankClassWidget extends StatelessWidget {
 
         :
 
-        Container(
-          padding: EdgeInsets.only(bottom: 20),
-          child: Column(
-            children: [
-              Expanded(child: Icon(Icons.add_rounded, size: 35, color: theme.textPrimary)),
-              Text(
-                'Klasse auswählen',
-                style: TextStyle(
-                  color: theme.textPrimary,
-                  fontSize: 13,
-                  letterSpacing: -0.1,
-                  fontWeight: FontWeight.w400,
-                  fontFamily: 'JetBrains Mono',
-                ),
-              ),
-            ],
-          ),
-        )
+        Icon(Icons.add_rounded, size: 38, color: theme.accent.withAlpha(100)),
       ),
     );
   }

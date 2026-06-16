@@ -27,7 +27,7 @@ class ClassSelectorList extends StatelessWidget {
             Navigator.pop(context);
           },
         ),
-        title: Text('Klasse auswählen', style: TextStyle(color: theme.textPrimary),),
+        title: Text('Klasse auswählen', style: TextStyle(color: theme.textPrimary, fontFamily: "Geist", fontSize: 19, fontWeight: FontWeight.w500)),
         backgroundColor: theme.surface
       ),
       backgroundColor: theme.base,

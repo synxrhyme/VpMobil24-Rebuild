@@ -13,7 +13,7 @@ class ClassListTile extends StatelessWidget {
     final theme = Theme.of(context).extension<AppColors>()!;
 
     return ListTile(
-      title: Text(title, style: TextStyle(color: theme.textPrimary)),
+      title: Text(title, style: TextStyle(color: theme.textPrimary, fontFamily: "Geist", fontSize: 16)),
       onTap: () {
         context.read<SavedClassesProvider>().edit("$buttonSourceIndex", true, title);
         Navigator.pop(context);

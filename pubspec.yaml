@@ -48,3 +48,6 @@ flutter:
     - family: JetBrains Mono
       fonts:
         - asset: assets/fonts/JetBrainsMono.ttf
+    - family: Geist
+      fonts:
+        - asset: assets/fonts/Geist.ttf
