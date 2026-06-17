@@ -41,13 +41,18 @@ class _TimetablePageState extends State<TimetablePage> {
       }
     });
 
-    if (dataProvider.newestKnownDate == null || dataProvider.newestKnownDate!.isBefore(DateTime.now()) && dataProvider.savedDates.isNotEmpty) {
+    DateTime now = DateTime.now();
+    DateTime mondayThisWeek = now.subtract(Duration(days: now.weekday - 1));
+    DateTime fridayThisWeek = mondayThisWeek.add(const Duration(days: 4));
+
+    if (dataProvider.newestKnownDate != null &&
+        dataProvider.newestKnownDate!.isAfter(DateTime.now()) &&
+        dataProvider.savedDates.isNotEmpty &&
+        dataProvider.newestKnownDate!.isAfter(mondayThisWeek)
+    ) {
       weekdayDates = dataProvider.savedDates;
     }
     else {
-      DateTime now = DateTime.now();
-      DateTime mondayThisWeek = now.subtract(Duration(days: now.weekday - 1));
-      DateTime fridayThisWeek = mondayThisWeek.add(const Duration(days: 4));
       weekdayDates = getWeekdays(mondayThisWeek, fridayThisWeek);
     }
   }
