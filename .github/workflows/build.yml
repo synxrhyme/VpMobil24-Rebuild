@@ -1,4 +1,4 @@
-name: Build APK
+name: Build APK workflow
 
 on:
   push:
