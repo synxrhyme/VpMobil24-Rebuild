@@ -5,9 +5,10 @@ import 'package:vpmobil_wrapper/utils/selected_class_subjects.dart';
 import 'package:vpmobil_wrapper/utils/vpmobil_parser.dart';
 
 class PeriodWidget extends StatelessWidget {
+  final String title;
   final List<Period> periods;
 
-  const PeriodWidget({super.key, required this.periods});
+  const PeriodWidget({super.key, required this.title, required this.periods});
 
   @override
   Widget build(BuildContext context) {
@@ -52,73 +53,106 @@ class PeriodWidget extends StatelessWidget {
             ),
 
             // Rechte Spalte: ein Block pro gleichzeitigem Fach, jeweils natürlich groß
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (int i = 0; i < periods.length; i++)
-                    //if (context.read<SelectedClassSubjects>().visibleSubjectsForClasses[periods[i].unterrichtNummer] ?? true)
-                    Builder(
-                      builder: (context) {
-                        final child = Container(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          decoration: BoxDecoration(
-                            color: rowColor(periods[i], theme)["background"],
-                            borderRadius: BorderRadius.only(
-                              topRight: i == 0 ? const Radius.circular(10) : Radius.zero,
-                              bottomRight: i == periods.length - 1 ? const Radius.circular(10) : Radius.zero,
-                            ),
-                            border: Border(
-                              left: BorderSide(color: rowColor(periods[i], theme)["border"]!),
-                              right: BorderSide(color: rowColor(periods[i], theme)["border"]!),
-                              top: BorderSide(color: rowColor(periods[i], theme)["border"]!),
-                              bottom: i == periods.length - 1
-                                  ? BorderSide(color: rowColor(periods[i], theme)["border"]!)
-                                  : BorderSide.none, // wird von der nächsten Zeile als top übernommen
-                            ),
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Row(
-                                mainAxisAlignment: periods[i].lehrerKuerzel.isNotEmpty && periods[i].raum.isNotEmpty
-                                    ? MainAxisAlignment.spaceBetween
-                                    : MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    padding: periods[i].lehrerKuerzel.isNotEmpty && periods[i].raum.isNotEmpty
-                                        ? const EdgeInsets.only(left: 20)
-                                        : null,
-                                    child: Text(periods[i].fachKuerzel, style: TextStyle(color: theme.textPrimary)),
-                                  ),
-                                  if (periods[i].lehrerKuerzel.isNotEmpty)
-                                    Text(periods[i].lehrerKuerzel, style: TextStyle(color: theme.textSecondary)),
-                                  if (periods[i].raum.isNotEmpty)
-                                    Container(
-                                      padding: const EdgeInsets.only(right: 20),
-                                      child: Text(
-                                        periods[i].raum,
-                                        style: TextStyle(color: theme.textSecondary),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                ],
-                              ),
-                              if (periods[i].hinweis.isNotEmpty)
-                                Text(periods[i].hinweis, style: TextStyle(color: theme.textPrimary)),
-                            ],
-                          ),
-                        );
+            Consumer<SelectedClassSubjects>(
+              builder: (context, selectedClassSubjects, _) {
+                final visiblePeriods = [
+                  for (final p in periods)
+                    if (selectedClassSubjects.visibleSubjectsForClasses[title]?[p.unterrichtNummer] ?? true) p
+                ];
 
-                        return periods.length == 1
-                          ? Expanded(child: child)
-                          : child;
-                      }
-                    ),
-                ],
-              ),
+                return Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (visiblePeriods.isEmpty)
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: theme.component,
+                              border: Border.all(color: theme.border),
+                              borderRadius: BorderRadius.only(
+                                topRight: Radius.circular(10),
+                                bottomRight: Radius.circular(10),
+                              ),
+                            ),
+                            child: Center(child: Text("---", style: TextStyle(color: theme.textPrimary))),
+                          ),
+                        )
+                      else
+                        for (int i = 0; i < visiblePeriods.length; i++)
+                          Builder(
+                            builder: (context) {
+                              final period = visiblePeriods[i];
+
+                              final child = Container(
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                decoration: BoxDecoration(
+                                  color: rowColor(period, theme)["background"],
+                                  borderRadius: BorderRadius.only(
+                                    topRight: i == 0 ? const Radius.circular(10) : Radius.zero,
+                                    bottomRight: i == visiblePeriods.length - 1 ? const Radius.circular(10) : Radius.zero,
+                                  ),
+                                  border: Border(
+                                    left: BorderSide(color: rowColor(period, theme)["border"]!),
+                                    right: BorderSide(color: rowColor(period, theme)["border"]!),
+                                    top: BorderSide(color: rowColor(period, theme)["border"]!),
+                                    bottom: i == visiblePeriods.length - 1
+                                        ? BorderSide(color: rowColor(period, theme)["border"]!)
+                                        : BorderSide.none, // wird von der nächsten Zeile als top übernommen
+                                  ),
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: period.lehrerKuerzel.isNotEmpty || period.raum.isNotEmpty
+                                          ? MainAxisAlignment.spaceBetween
+                                          : MainAxisAlignment.center,
+                                      children: [
+                                        Container(
+                                          padding: period.lehrerKuerzel.isNotEmpty || period.raum.isNotEmpty
+                                            ? const EdgeInsets.only(left: 20)
+                                            : null,
+                                          child: SizedBox(
+                                            width: 50,
+                                            child: Text(period.fachKuerzel, style: TextStyle(color: theme.textPrimary))
+                                          ),
+                                        ),
+                                        if (period.lehrerKuerzel.isNotEmpty)
+                                          Container(
+                                            width: 50,
+                                            padding: EdgeInsets.only(left: 10),
+                                            child: Text(period.lehrerKuerzel, style: TextStyle(color: rowColor(period, theme)["text"]))
+                                          ),
+                                        if (period.raum.isNotEmpty || (period.lehrerKuerzel.isNotEmpty && period.lehrerKuerzel.isNotEmpty && period.raum.isEmpty))
+                                          SizedBox(
+                                            width: 75,
+                                            child: Container(
+                                              padding: const EdgeInsets.only(right: 20),
+                                              child: Text(
+                                                period.raum,
+                                                style: TextStyle(color: rowColor(period, theme)["text"]),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                    if (period.hinweis.isNotEmpty)
+                                      Text(period.hinweis, style: TextStyle(color: theme.textPrimary)),
+                                  ],
+                                ),
+                              );
+
+                              return visiblePeriods.length == 1 ? Expanded(child: child) : child;
+                            }
+                          )
+                    ],
+                  ),
+                );
+              }
             ),
           ],
         ),

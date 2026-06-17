@@ -21,7 +21,8 @@ Future<XmlDocument?> loadNewest(Map<String, dynamic> params) async {
     );
 
     if (response.statusCode == 200) {
-      String xml = response.body;
+      final bytes = response.bodyBytes;
+      String xml = utf8.decode(bytes, allowMalformed: true);
 
       if (xml.startsWith('\uFEFF')) {
         xml = xml.substring(1);

@@ -50,6 +50,26 @@ class DataProvider extends ChangeNotifier {
     List<String>? klassen = await loadList("classes");
     if (klassen != null) _klassen = klassen;
 
+    Map<String, List<ChoosableSubject>> subjectsForClasses = {};
+
+    for (String klasse in _klassen) {
+      final int maxIndex = await getInt("maxIndex_$klasse") ?? 0;
+      List<ChoosableSubject> dataForClass = [];
+
+      for (int index = 0; index < maxIndex; index++) {
+        String? rawData = await getString("subject_${index}_$klasse");
+        if (rawData == null) continue;
+
+        Map<String, dynamic> dataForSubject = jsonDecode(rawData);
+        ChoosableSubject subject = ChoosableSubject(lehrerKuerzel: dataForSubject["lehrerKuerzel"], fachKuerzel: dataForSubject["fachKuerzel"], nummer: dataForSubject["nummer"]);
+        dataForClass.add(subject);
+      }
+
+      subjectsForClasses[klasse] = dataForClass;
+    }
+
+    _subjectsForClasses = subjectsForClasses;
+
     _data = {};
     for (DateTime date in _savedDates) {
       debugPrint("loading from memory: ${date.toIso8601String()}");
@@ -79,23 +99,21 @@ class DataProvider extends ChangeNotifier {
 
       Map<String, List<ChoosableSubject>>? subjectsForClasses = await getSubjectsForClasses(newestData);
       if (subjectsForClasses == null) return false;
+      _subjectsForClasses = subjectsForClasses;
 
-      bool? initialized = await getBool("initializedSubjects");
-      if (initialized == null) return false;
-
-      if (!initialized) {
-        for (MapEntry<String, List<ChoosableSubject>> entry in subjectsForClasses.entries) {
-          Map<String, dynamic> data = {};
-
-          for (ChoosableSubject subject in entry.value) {
-            String number = subject.nummer.toString();
-            data[number] = true;
-          }
-
-          await setString("selectedSubjects_${entry.key}", jsonEncode(data));
+      for (MapEntry<String, List<ChoosableSubject>> entry in subjectsForClasses.entries) {
+        for (int index = 0; index < entry.value.length; index++) {
+          final subject = entry.value[index];
+          Map<String, dynamic> data = {
+            "fachKuerzel": subject.fachKuerzel,
+            "lehrerKuerzel": subject.lehrerKuerzel,
+            "nummer": subject.nummer,
+          };
+          await setString("subject_${index}_${entry.key}", jsonEncode(data));
         }
 
-        await setBool("initialized", true);
+        final int maxIndex = entry.value.length;
+        setInt("maxIndex_${entry.key}", maxIndex);
       }
 
       await saveList("classes", klassen);
@@ -188,7 +206,7 @@ class DataProvider extends ChangeNotifier {
             subjects.add(
               ChoosableSubject(
                 lehrerKuerzel: ueNr.getAttribute('UeLe') ?? '',
-                fachKuerzel: ueNr.getAttribute('UeFa') ?? '',
+                fachKuerzel: ueNr.getAttribute('UeGr') ?? '',
                 nummer: int.parse(ueNr.innerText),
               ),
             );

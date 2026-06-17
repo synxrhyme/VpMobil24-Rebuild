@@ -4,6 +4,7 @@ import 'package:vpmobil_wrapper/components/saved_class_list_tile.dart';
 import 'package:vpmobil_wrapper/theme.dart';
 import 'package:vpmobil_wrapper/utils/choosable_subject.dart';
 import 'package:vpmobil_wrapper/utils/data_provider.dart';
+import 'package:vpmobil_wrapper/utils/selected_class_subjects.dart';
 
 class SubjectSelectPage extends StatefulWidget {
   final String title;
@@ -15,6 +16,16 @@ class SubjectSelectPage extends StatefulWidget {
 }
 
 class _SubjectSelectPageState extends State<SubjectSelectPage> {
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    await context.read<SelectedClassSubjects>().reload(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context).extension<AppColors>()!;
@@ -44,52 +55,63 @@ class _SubjectSelectPageState extends State<SubjectSelectPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.component,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(7),
+              SizedBox(
+                width: 120,
+                child: ElevatedButton(
+                  onPressed: () {
+                    SelectedClassSubjects selectedClassSubjects = context.read<SelectedClassSubjects>();
+                    selectedClassSubjects.setAllInClass(context, widget.title, true);
+                    selectedClassSubjects.saveData(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.component,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(7),
+                    ),
                   ),
-                ),
-                child: Text("Alle", style: TextStyle(color: theme.accent, fontFamily: "Geist", fontSize: 19, fontWeight: FontWeight.w500))),
-              ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.component,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(7),
+                  child: Text("Alle", style: TextStyle(color: theme.accent, fontFamily: "Geist", fontSize: 19, fontWeight: FontWeight.w500))),
+              ),
+              SizedBox(
+                width: 120,
+                child: ElevatedButton(
+                  onPressed: () {
+                    SelectedClassSubjects selectedClassSubjects = context.read<SelectedClassSubjects>();
+                    selectedClassSubjects.setAllInClass(context, widget.title, false);
+                    selectedClassSubjects.saveData(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.component,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(7),
+                    ),
                   ),
-                ),
-                child: Text("Keine", style: TextStyle(color: theme.accent, fontFamily: "Geist", fontSize: 19, fontWeight: FontWeight.w500)))
+                  child: Text("Keine", style: TextStyle(color: theme.accent, fontFamily: "Geist", fontSize: 19, fontWeight: FontWeight.w500))),
+              )
             ],
           ),
           Expanded(
-            child: ListView.separated(
-              itemCount: context.read<DataProvider>().subjectsForClasses.length,
-              itemBuilder: (context, index) {
-                final ChoosableSubject subject = context.read<DataProvider>().subjectsForClasses[widget.title]?[index] ?? ChoosableSubject(lehrerKuerzel: "lehrerKuerzel", fachKuerzel: "fachKuerzel", nummer: 123);
-                return SavedClassListTile(fachKuerzel: subject.fachKuerzel, lehrerKuerzel: subject.lehrerKuerzel, nummer: subject.nummer);
-              },
-              separatorBuilder: (context, index) {
-                final theme = Theme.of(context).extension<AppColors>()!;
-                return Align(
-                  alignment: Alignment.center,
-                  child: FractionallySizedBox(
-                    widthFactor: 1,
-                    child: Divider(
-                      height: 1,
-                      thickness: 0.5,
-                      color: theme.border,
+            child: Container(
+              margin: EdgeInsets.only(top: 30, left: 10, right: 10),
+              child: Consumer<DataProvider>(
+                builder: (context, dataProvider, _) {
+                  return GridView.builder(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2, // 2 Spalten
+                      childAspectRatio: 3, // Breite/Höhe anpassen
                     ),
-                  ),
-                );
-              },
-            ),
+                    itemCount: dataProvider.subjectsForClasses[widget.title]?.length ?? 0,
+                    itemBuilder: (context, index) {
+                      final ChoosableSubject subject = dataProvider.subjectsForClasses[widget.title]![index];
+                      return SavedClassListTile(title: widget.title, fachKuerzel: subject.fachKuerzel, lehrerKuerzel: subject.lehrerKuerzel, nummer: subject.nummer, index: index);
+                    },
+                  );
+                }
+              ),
+            )
           )
-        ],
+        ]
       )
     );
   }

@@ -17,23 +17,29 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('de_DE', null);
   await dotenv.load();
+
   final initService = InitService();
   final dataProvider = DataProvider();
   final classesProvider = SavedClassesProvider();
+  final selectedClassSubjects = SelectedClassSubjects();
   final loadingService = LoadingService();
+
   initService.register(dataProvider.ready);
   initService.register(classesProvider.ready);
+
   final readyFuture = initService.start();
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
     debugPrint(details.exceptionAsString());
   };
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: loadingService),
         ChangeNotifierProvider.value(value: dataProvider),
         ChangeNotifierProvider.value(value: classesProvider),
+        ChangeNotifierProvider.value(value: selectedClassSubjects),
         Provider<Future<void>>.value(value: readyFuture),
       ],
       child: MyApp(),
@@ -108,8 +114,9 @@ class AppRoot extends StatelessWidget {
           );
         }
 
-        final visibleClassesProvider = SelectedClassSubjects();
-        visibleClassesProvider.reload(context);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context.read<SelectedClassSubjects>().reload(context);
+        });
 
         return const HomePage();
       },

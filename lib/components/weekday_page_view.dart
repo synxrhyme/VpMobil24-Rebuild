@@ -132,7 +132,7 @@ class WeekdayPageViewState extends State<WeekdayPageView> {
                         physics: ScrollPhysics(),
                         itemCount: groupedPeriods.length,
                         itemBuilder: (context, periodIndex) {
-                          return PeriodWidget(periods: groupedPeriods[periodIndex]);
+                          return PeriodWidget(title: widget.title, periods: groupedPeriods[periodIndex]);
                         },
                       );
                     },
