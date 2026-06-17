@@ -16,24 +16,18 @@ final GlobalKey<NavigatorState> navigatorKey                     = GlobalKey<Nav
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('de_DE', null);
-
   await dotenv.load();
-
   final initService = InitService();
   final dataProvider = DataProvider();
   final classesProvider = SavedClassesProvider();
   final loadingService = LoadingService();
-
   initService.register(dataProvider.ready);
   initService.register(classesProvider.ready);
-
   final readyFuture = initService.start();
-
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
     debugPrint(details.exceptionAsString());
   };
-
   runApp(
     MultiProvider(
       providers: [
@@ -61,6 +55,32 @@ class MyApp extends StatelessWidget {
       theme: vpLightTheme(),
       darkTheme: vpDarkTheme(),
       home: const AppRoot(),
+      builder: (context, child) {
+        final theme = Theme.of(context).extension<AppColors>()!;
+
+        return Stack(
+          children: [
+            if (child != null) child,
+
+            Consumer<LoadingService>(
+              builder: (context, loadingService, _) {
+                if (!loadingService.isLoading) return const SizedBox.shrink();
+
+                return IgnorePointer(
+                  child: Container(
+                    color: theme.base.withAlpha(200),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: theme.accent,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -76,7 +96,7 @@ class AppRoot extends StatelessWidget {
       future: context.read<Future<void>>(),
       builder: (context, asyncSnapshot) {
         final theme = Theme.of(context).extension<AppColors>()!;
-        
+
         if (asyncSnapshot.connectionState != ConnectionState.done) {
           return Container(
             color: theme.base,
@@ -90,28 +110,9 @@ class AppRoot extends StatelessWidget {
 
         final visibleClassesProvider = SelectedClassSubjects();
         visibleClassesProvider.reload(context);
-    
-        return Stack(
-          children: [
-            HomePage(),
-            
-            Consumer<LoadingService>(
-              builder: (context, loadingService, _) {
-                if (!loadingService.isLoading) return const SizedBox.shrink();
-          
-                return Container(
-                  color: theme.base.withAlpha(200),
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      color: theme.accent,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
-        );
-      }
+
+        return const HomePage();
+      },
     );
   }
 }
