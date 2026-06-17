@@ -125,10 +125,7 @@ class _TimetablePageState extends State<TimetablePage> {
 
                           return SlideTransition(
                             position: animation.drive(inAnimation),
-                            child: SlideTransition(
-                              position: secondaryAnimation.drive(outAnimation),
-                              child: child,
-                            ),
+                            child: child,
                           );
                         },
                       ),
