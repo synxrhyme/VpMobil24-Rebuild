@@ -14,7 +14,9 @@ class BlankClassWidget extends StatelessWidget {
 
   const BlankClassWidget({
     super.key,
-    required this.index, required this.isSet, required this.title
+    required this.index,
+    required this.isSet,
+    required this.title,
   });
 
   @override
@@ -34,26 +36,27 @@ class BlankClassWidget extends StatelessWidget {
 
         await Navigator.of(context).push(
           PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => isSet ? TimetablePage(title: title) : ClassSelectorList(buttonSourceIndex: index, classList: classes),
+            pageBuilder: (context, animation, secondaryAnimation) => isSet
+                ? TimetablePage(title: title)
+                : ClassSelectorList(
+                    buttonSourceIndex: index,
+                    classList: classes,
+                  ),
             transitionDuration: Duration(milliseconds: 300),
             reverseTransitionDuration: Duration(milliseconds: 300),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              // Animation beim Rein- und Rausgehen
-              final inAnimation = Tween<Offset>(
-                begin: Offset(0.0, 1.0),
-                end: Offset.zero,
-              ).chain(CurveTween(curve: Curves.easeInOut));
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  // Animation beim Rein- und Rausgehen
+                  final inAnimation = Tween<Offset>(
+                    begin: Offset(0.0, 1.0),
+                    end: Offset.zero,
+                  ).chain(CurveTween(curve: Curves.easeInOut));
 
-              final outAnimation = Tween<Offset>(
-                begin: Offset.zero,
-                end: Offset(0.0, 1.0),
-              ).chain(CurveTween(curve: Curves.easeInOut));
-
-              return SlideTransition(
-                position: animation.drive(inAnimation),
-                child: child,
-              );
-            },
+                  return SlideTransition(
+                    position: animation.drive(inAnimation),
+                    child: child,
+                  );
+                },
           ),
         );
       },
@@ -65,42 +68,47 @@ class BlankClassWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
         ),
         child: isSet
-      
-        ?
-
-        Stack(
-          children: [
-            Center(
-              child: Text(
-                title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: theme.textPrimary,
-                  fontSize: 21,
-                  fontFamily: 'JetBrains Mono',
-                ),
+            ? Stack(
+                children: [
+                  Center(
+                    child: Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: theme.textPrimary,
+                        fontSize: 21,
+                        fontFamily: 'JetBrains Mono',
+                      ),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: GestureDetector(
+                      onTap: () async {
+                        if (!context.mounted) return;
+                        context.read<SavedClassesProvider>().edit(
+                          "$index",
+                          false,
+                        );
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(5),
+                        color: Colors.transparent,
+                        child: Icon(
+                          Icons.close_rounded,
+                          size: 35,
+                          color: const Color.fromARGB(255, 236, 49, 35),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            : Icon(
+                Icons.add_rounded,
+                size: 38,
+                color: theme.accent.withAlpha(100),
               ),
-            ),
-            Align(
-              alignment: Alignment.topRight,
-              child: GestureDetector(
-                onTap: () async {
-                  if (!context.mounted) return;
-                  context.read<SavedClassesProvider>().edit("$index", false);
-                },
-                child: Container(
-                  padding: EdgeInsets.all(5),
-                  color: Colors.transparent,
-                  child: Icon(Icons.close_rounded, size: 35, color: const Color.fromARGB(255, 236, 49, 35))
-                ),
-              ),
-            ),
-          ],
-        )
-
-        :
-
-        Icon(Icons.add_rounded, size: 38, color: theme.accent.withAlpha(100)),
       ),
     );
   }

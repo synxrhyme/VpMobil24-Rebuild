@@ -2,8 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vpmobil_wrapper/utils/choosable_subject.dart';
 import 'package:vpmobil_wrapper/utils/data_provider.dart';
 import 'package:vpmobil_wrapper/utils/preferences_utils.dart';
+import 'package:vpmobil_wrapper/utils/vpmobil_parser.dart';
 
 class SelectedClassSubjects extends ChangeNotifier {
   Map<String, Map<int, bool>> visibleSubjectsForClasses = {};
@@ -59,5 +61,26 @@ class SelectedClassSubjects extends ChangeNotifier {
     }
 
     notifyListeners();
+  }
+
+  bool isPeriodVisible(String className,Period p,List<ChoosableSubject> subjects) {
+    final map = visibleSubjectsForClasses[className] ?? {};
+
+    if (p.unterrichtNummer != 0 && map.containsKey(p.unterrichtNummer)) {
+      return map[p.unterrichtNummer]!;
+    }
+
+    // Fallback (z. B. Vertretung ohne Nr): über Fachkürzel zuordnen
+    final matches = subjects.where(
+      (s) =>
+          s.fachKuerzel == p.fachKuerzel ||
+          s.fachKuerzel == p.geaendertesFach,
+    );
+    if (matches.isNotEmpty) {
+      return matches.any((s) => map[s.nummer] ?? true);
+    }
+
+    // unbekannt -> anzeigen
+    return true;
   }
 }

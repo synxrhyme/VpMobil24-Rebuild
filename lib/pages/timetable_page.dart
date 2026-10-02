@@ -21,7 +21,8 @@ class TimetablePage extends StatefulWidget {
 class _TimetablePageState extends State<TimetablePage> {
   final ValueNotifier<int> currentPage = ValueNotifier(0);
   late final PageController _pageController;
-  final GlobalKey<WeekdayPageViewState> childKey = GlobalKey<WeekdayPageViewState>();
+  final GlobalKey<WeekdayPageViewState> childKey =
+      GlobalKey<WeekdayPageViewState>();
   late final List<DateTime> weekdayDates;
 
   @override
@@ -48,11 +49,9 @@ class _TimetablePageState extends State<TimetablePage> {
     if (dataProvider.newestKnownDate != null &&
         dataProvider.newestKnownDate!.isAfter(DateTime.now()) &&
         dataProvider.savedDates.isNotEmpty &&
-        dataProvider.newestKnownDate!.isAfter(mondayThisWeek)
-    ) {
+        dataProvider.newestKnownDate!.isAfter(mondayThisWeek)) {
       weekdayDates = dataProvider.savedDates;
-    }
-    else {
+    } else {
       weekdayDates = getWeekdays(mondayThisWeek, fridayThisWeek);
     }
   }
@@ -86,10 +85,7 @@ class _TimetablePageState extends State<TimetablePage> {
       appBar: AppBar(
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(0),
-          child: Container(
-            height: 1,
-            color: theme.border
-          ),
+          child: Container(height: 1, color: theme.border),
         ),
         leading: IconButton(
           icon: Icon(Icons.arrow_back_rounded, color: theme.textPrimary),
@@ -100,40 +96,55 @@ class _TimetablePageState extends State<TimetablePage> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Stundenplan ${widget.title}', style: TextStyle(color: theme.textPrimary, fontFamily: "Geist", fontSize: 19, fontWeight: FontWeight.w500)),
+            Text(
+              'Stundenplan ${widget.title}',
+              style: TextStyle(
+                color: theme.textPrimary,
+                fontFamily: "Geist",
+                fontSize: 19,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
             Row(
               children: [
                 IconButton(
-                  icon: Icon(Icons.person, color: theme.accent, fontWeight: FontWeight.bold, size: 22),
+                  icon: Icon(
+                    Icons.person,
+                    color: theme.accent,
+                    fontWeight: FontWeight.bold,
+                    size: 22,
+                  ),
                   onPressed: () {
                     Navigator.of(context).push(
                       PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) => SubjectSelectPage(title: widget.title),
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                            SubjectSelectPage(title: widget.title),
                         transitionDuration: Duration(milliseconds: 300),
                         reverseTransitionDuration: Duration(milliseconds: 300),
-                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                          // Animation beim Rein- und Rausgehen
-                          final inAnimation = Tween<Offset>(
-                            begin: Offset(0.0, 1.0),
-                            end: Offset.zero,
-                          ).chain(CurveTween(curve: Curves.easeInOut));
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                              // Animation beim Rein- und Rausgehen
+                              final inAnimation = Tween<Offset>(
+                                begin: Offset(0.0, 1.0),
+                                end: Offset.zero,
+                              ).chain(CurveTween(curve: Curves.easeInOut));
 
-                          final outAnimation = Tween<Offset>(
-                            begin: Offset.zero,
-                            end: Offset(0.0, 1.0),
-                          ).chain(CurveTween(curve: Curves.easeInOut));
-
-                          return SlideTransition(
-                            position: animation.drive(inAnimation),
-                            child: child,
-                          );
-                        },
+                              return SlideTransition(
+                                position: animation.drive(inAnimation),
+                                child: child,
+                              );
+                            },
                       ),
                     );
                   },
                 ),
                 IconButton(
-                  icon: Icon(Icons.refresh_rounded, color: theme.accent, fontWeight: FontWeight.w600, size: 22),
+                  icon: Icon(
+                    Icons.refresh_rounded,
+                    color: theme.accent,
+                    fontWeight: FontWeight.w600,
+                    size: 22,
+                  ),
                   onPressed: () async {
                     if (!context.mounted) return;
                     context.read<LoadingService>().show();
@@ -149,10 +160,10 @@ class _TimetablePageState extends State<TimetablePage> {
                   },
                 ),
               ],
-            )
+            ),
           ],
         ),
-        backgroundColor: theme.surface
+        backgroundColor: theme.surface,
       ),
       backgroundColor: theme.base,
       body: Column(
@@ -160,9 +171,7 @@ class _TimetablePageState extends State<TimetablePage> {
           Container(
             height: 65,
             padding: EdgeInsets.only(bottom: 5),
-            decoration: BoxDecoration(
-              color: theme.base,
-            ),
+            decoration: BoxDecoration(color: theme.base),
             child: Container(
               padding: EdgeInsets.symmetric(vertical: 5),
               child: Row(
@@ -174,12 +183,18 @@ class _TimetablePageState extends State<TimetablePage> {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () {
-                        _pageController.previousPage(duration: Duration(milliseconds: 250), curve: Curves.easeOut);
+                        _pageController.previousPage(
+                          duration: Duration(milliseconds: 250),
+                          curve: Curves.easeOut,
+                        );
                       },
                       borderRadius: BorderRadius.circular(10),
                       splashColor: Color.fromARGB(255, 55, 55, 55),
                       child: Ink(
-                        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 17),
+                        padding: EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 17,
+                        ),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
                           color: theme.raised,
@@ -194,9 +209,14 @@ class _TimetablePageState extends State<TimetablePage> {
                       valueListenable: currentPage,
                       builder: (context, index, child) {
                         final date = weekdayDates[index];
-                        final weekdayName = DateFormat('EEEE', 'de_DE').format(date);
-                        final readableFormattedDate = DateFormat('dd.MM.yyyy').format(date);
-                    
+                        final weekdayName = DateFormat(
+                          'EEEE',
+                          'de_DE',
+                        ).format(date);
+                        final readableFormattedDate = DateFormat(
+                          'dd.MM.yyyy',
+                        ).format(date);
+
                         return Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -219,17 +239,26 @@ class _TimetablePageState extends State<TimetablePage> {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () {
-                        _pageController.nextPage(duration: Duration(milliseconds: 250), curve: Curves.easeOut);
+                        _pageController.nextPage(
+                          duration: Duration(milliseconds: 250),
+                          curve: Curves.easeOut,
+                        );
                       },
                       borderRadius: BorderRadius.circular(10),
                       splashColor: Color.fromARGB(255, 55, 55, 55),
                       child: Ink(
-                        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 17),
+                        padding: EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 17,
+                        ),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
                           color: theme.raised,
                         ),
-                        child: Icon(Icons.arrow_right, color: theme.textPrimary),
+                        child: Icon(
+                          Icons.arrow_right,
+                          color: theme.textPrimary,
+                        ),
                       ),
                     ),
                   ),
@@ -238,7 +267,12 @@ class _TimetablePageState extends State<TimetablePage> {
             ),
           ),
           Expanded(
-            child: WeekdayPageView(weekdayDates: weekdayDates, pageController: _pageController, title: widget.title, key: childKey),
+            child: WeekdayPageView(
+              weekdayDates: weekdayDates,
+              pageController: _pageController,
+              title: widget.title,
+              key: childKey,
+            ),
           ),
         ],
       ),

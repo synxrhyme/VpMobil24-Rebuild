@@ -4,13 +4,14 @@ import 'package:vpmobil_wrapper/components/saved_class_list_tile.dart';
 import 'package:vpmobil_wrapper/theme.dart';
 import 'package:vpmobil_wrapper/utils/choosable_subject.dart';
 import 'package:vpmobil_wrapper/utils/data_provider.dart';
+import 'package:vpmobil_wrapper/utils/loading_provider.dart';
 import 'package:vpmobil_wrapper/utils/selected_class_subjects.dart';
 
 class SubjectSelectPage extends StatefulWidget {
   final String title;
-  
+
   const SubjectSelectPage({super.key, required this.title});
-  
+
   @override
   State<SubjectSelectPage> createState() => _SubjectSelectPageState();
 }
