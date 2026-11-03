@@ -1,12 +1,15 @@
 import 'dart:convert';
-
-import 'package:vpmobil_wrapper/utils/api_utils.dart';
 import 'package:vpmobil_wrapper/utils/choosable_subject.dart';
+import 'package:vpmobil_wrapper/utils/fetch_dates.dart';
+import 'package:vpmobil_wrapper/utils/fetch_klassen.dart';
+import 'package:vpmobil_wrapper/utils/fetch_dir.dart';
+import 'package:vpmobil_wrapper/utils/plan_file_entry.dart';
 import 'package:vpmobil_wrapper/utils/preferences_utils.dart';
 import 'package:vpmobil_wrapper/utils/time_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:vpmobil_wrapper/utils/persistent_storage_utils.dart';
 import 'package:xml/xml.dart';
+
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class DataProvider extends ChangeNotifier {
@@ -24,7 +27,8 @@ class DataProvider extends ChangeNotifier {
   Map<DateTime, XmlDocument?> get data => _data;
   List<DateTime> get savedDates => _savedDates;
   List<String> get classes => _klassen;
-  Map<String, List<ChoosableSubject>> get subjectsForClasses => _subjectsForClasses ?? {};
+  Map<String, List<ChoosableSubject>> get subjectsForClasses =>
+      _subjectsForClasses ?? {};
 
   DateTime? get lastRefresh => _lastRefresh;
   DateTime? get newestKnownDate => _newestKnownDate;
@@ -37,14 +41,19 @@ class DataProvider extends ChangeNotifier {
     debugPrint("initializing data provider...");
 
     String? lastRefreshString = await getString("last_refresh");
-    if (lastRefreshString != null) _lastRefresh = DateTime.parse(lastRefreshString);
+    if (lastRefreshString != null)
+      _lastRefresh = DateTime.parse(lastRefreshString);
 
     String? newestKnownDateString = await getString("newest_known_date");
-    if (newestKnownDateString != null) _newestKnownDate = DateTime.parse(newestKnownDateString);
+    if (newestKnownDateString != null)
+      _newestKnownDate = DateTime.parse(newestKnownDateString);
     debugPrint("newest known date: $newestKnownDateString");
 
     List<String>? savedDateStrings = await loadList("saved_dates");
-    if (savedDateStrings != null) _savedDates = savedDateStrings.map((dateString) => DateTime.parse(dateString)).toList();
+    if (savedDateStrings != null)
+      _savedDates = savedDateStrings
+          .map((dateString) => DateTime.parse(dateString))
+          .toList();
     debugPrint("saved dates: $savedDateStrings");
 
     List<String>? klassen = await loadList("classes");
@@ -61,7 +70,11 @@ class DataProvider extends ChangeNotifier {
         if (rawData == null) continue;
 
         Map<String, dynamic> dataForSubject = jsonDecode(rawData);
-        ChoosableSubject subject = ChoosableSubject(lehrerKuerzel: dataForSubject["lehrerKuerzel"], fachKuerzel: dataForSubject["fachKuerzel"], nummer: dataForSubject["nummer"]);
+        ChoosableSubject subject = ChoosableSubject(
+          lehrerKuerzel: dataForSubject["lehrerKuerzel"],
+          fachKuerzel: dataForSubject["fachKuerzel"],
+          nummer: dataForSubject["nummer"],
+        );
         dataForClass.add(subject);
       }
 
@@ -79,29 +92,46 @@ class DataProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> reload() async { // bool: success   
+  Future<void> reload() async {
+    // bool: success
     try {
       final String user = dotenv.get("user");
       final String password = dotenv.get("password");
       final String schoolNumber = dotenv.get("school_number");
 
-      final XmlDocument? newestData = await loadNewest({"user": user, "password": password, "school_number": schoolNumber});
-      if (newestData == null) {
-        debugPrint("Fehler beim Laden der Daten: Fehler bei der Netzwerkanfrage");
-        return false;
+      final List<PlanFileEntry> availableFiles = await fetchPlanDirectory({
+        "user": user,
+        "password": password,
+        "school_number": schoolNumber,
+      });
+
+      final XmlDocument? klassenFile = await loadKlassen({
+        "user": user,
+        "password": password,
+        "school_number": schoolNumber,
+      });
+
+      if (klassenFile == null) {
+        debugPrint("klassenFile is null");
+        return;
       }
 
-      List<DateTime>? requiredDates = await getRequiredDates(newestData);
-      if (requiredDates == null) return false;
+      List<String>? classes = await getClasses(klassenFile);
+      if (classes == null) {
+        debugPrint("classes is null");
+        return;
+      }
 
-      List<String>? klassen = await getClasses(newestData);
-      if (klassen == null) return false;
-
-      Map<String, List<ChoosableSubject>>? subjectsForClasses = await getSubjectsForClasses(newestData);
-      if (subjectsForClasses == null) return false;
+      Map<String, List<ChoosableSubject>>? subjectsForClasses =
+          await getSubjectsForClasses(klassenFile);
+      if (subjectsForClasses == null) {
+        debugPrint("subjectsForClasses is null");
+        return;
+      }
       _subjectsForClasses = subjectsForClasses;
 
-      for (MapEntry<String, List<ChoosableSubject>> entry in subjectsForClasses.entries) {
+      for (MapEntry<String, List<ChoosableSubject>> entry
+          in subjectsForClasses.entries) {
         for (int index = 0; index < entry.value.length; index++) {
           final subject = entry.value[index];
           Map<String, dynamic> data = {
@@ -116,23 +146,52 @@ class DataProvider extends ChangeNotifier {
         setInt("maxIndex_${entry.key}", maxIndex);
       }
 
-      await saveList("classes", klassen);
-      List<String>? loadedKlassen = await loadList("classes");
-      if (loadedKlassen != null) _klassen = loadedKlassen;
+      await saveList("classes", classes);
+      List<String>? loadedClasses = await loadList("classes");
+      if (loadedClasses != null) _klassen = loadedClasses;
 
-      await ensureRequired(requiredDates);
+      final PlanFileEntry latestFile =
+          availableFiles[availableFiles.length - 1];
+      DateTime? newestDate = latestFile.planDate;
+      if (newestDate == null) {
+        final String newestDateFromXml = klassenFile
+            .getElement('VpMobil')!
+            .getElement('Kopf')!
+            .getElement('DatumPlan')!
+            .innerText
+            .toString();
+        newestDate = parseGermanDate(newestDateFromXml);
+      }
 
-      final Map<DateTime, XmlDocument?> allData = await fetchDates(requiredDates, user, password, schoolNumber);
+      setString("newest_known_date", newestDate.toIso8601String());
+      _newestKnownDate = newestDate;
+
+      final List<DateTime> availableDates = availableFiles
+          .map((e) => e.planDate)
+          .whereType<DateTime>()
+          .toList();
+
+      final Map<DateTime, XmlDocument?> allData = await fetchDates(
+        availableDates,
+        user,
+        password,
+        schoolNumber,
+      );
 
       for (MapEntry<DateTime, XmlDocument?> entry in allData.entries) {
         if (entry.value == null) continue;
         await savePersistentData(entry.key.toIso8601String(), entry.value!);
-        
+
         if (!_savedDates.contains(entry.key)) _savedDates.add(entry.key);
-        List<String> savedDatesStringList = _savedDates.map((dateTime) => dateTime.toIso8601String()).toList();
-        debugPrint("saved_dates_list: $savedDatesStringList");
+        List<String> savedDatesStringList = _savedDates
+            .map((dateTime) => dateTime.toIso8601String())
+            .toList();
+
         await saveList("saved_dates", savedDatesStringList);
       }
+
+      List<String>? savedDates = await loadList("saved_dates");
+      debugPrint("saved_dates_list: ${savedDates.toString()}");
 
       _data = {};
       for (DateTime date in _savedDates) {
@@ -141,56 +200,40 @@ class DataProvider extends ChangeNotifier {
 
       await setString("last_refresh", DateTime.now().toIso8601String());
       String? loadedLastRefresh = await getString("last_refresh");
-      if (loadedLastRefresh != null) _lastRefresh = DateTime.parse(loadedLastRefresh);
-      
-      String? loadedNewestKnownDate = await getString("newest_known_date");
-      if (loadedNewestKnownDate != null) _newestKnownDate = DateTime.parse(loadedNewestKnownDate);
-    }
-    catch (error) {
+      if (loadedLastRefresh != null)
+        _lastRefresh = DateTime.parse(loadedLastRefresh);
+
+      final List<DateTime> requiredDates = await getRequiredDates(
+        newestDate,
+      ); // monday last week -> today
+      await ensureRequired(requiredDates);
+    } catch (error) {
       debugPrint("$error");
-      return false;
-    }
-
-    notifyListeners();
-    return true;
-  }
-
-  Future<List<DateTime>?> getRequiredDates(XmlDocument data) async {
-    DateTime now = DateTime.now();
-    DateTime newestDate = now;
-
-    try {
-      final String newestDateFromXml = data.getElement('VpMobil')!.getElement('Kopf')!.getElement('DatumPlan')!.innerText.toString();
-      newestDate = parseGermanDate(newestDateFromXml);
-      setString("newest_known_date", newestDate.toIso8601String());
-    }
-    catch (error) {
-      debugPrint("Fehler beim Laden der benötigten Tage: $error");
       return null;
     }
 
-    DateTime mondayThisWeek = now.subtract(Duration(days: now.weekday - 1));
-    List<DateTime> requiredDates = getWeekdays(mondayThisWeek, newestDate);
-    return requiredDates;
+    notifyListeners();
+    return null;
   }
 
   Future<List<String>?> getClasses(XmlDocument data) async {
     try {
       final vpMobil = data.getElement('VpMobil');
       final kurzListe = vpMobil!
-        .findAllElements('Kl')
-        .map((k) => k.getElement('Kurz')?.innerText)
-        .whereType<String>()
-        .toList();
+          .findAllElements('Kl')
+          .map((k) => k.getElement('Kurz')?.innerText)
+          .whereType<String>()
+          .toList();
       return kurzListe;
-    }
-    catch (error) {
+    } catch (error) {
       debugPrint("Fehler beim Laden der Klassen: $error");
       return null;
     }
   }
 
-  Future<Map<String, List<ChoosableSubject>>?> getSubjectsForClasses(XmlDocument data) async {
+  Future<Map<String, List<ChoosableSubject>>?> getSubjectsForClasses(
+    XmlDocument data,
+  ) async {
     final Map<String, List<ChoosableSubject>> result = {};
 
     try {
@@ -217,13 +260,12 @@ class DataProvider extends ChangeNotifier {
       }
 
       return result;
-    }
-    catch (error) {
+    } catch (error) {
       debugPrint("Fehler beim Laden der Klassen: $error");
       return null;
     }
   }
-  
+
   Future<void> ensureRequired(List<DateTime> requiredDates) async {
     for (DateTime date in _savedDates) {
       bool isRequired = requiredDates.contains(date);
@@ -232,7 +274,10 @@ class DataProvider extends ChangeNotifier {
         deletePersistentData(date.toIso8601String());
 
         _savedDates.remove(date);
-        saveList("saved_dates", _savedDates.map((dateTime) => dateTime.toIso8601String()).toList());
+        saveList(
+          "saved_dates",
+          _savedDates.map((dateTime) => dateTime.toIso8601String()).toList(),
+        );
 
         _data = {};
         for (DateTime date in _savedDates) {

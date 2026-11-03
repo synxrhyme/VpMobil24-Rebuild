@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vpmobil_wrapper/components/class_button.dart';
+import 'package:vpmobil_wrapper/pages/log_page.dart';
 import 'package:vpmobil_wrapper/theme.dart';
 import 'package:vpmobil_wrapper/utils/data_provider.dart';
 import 'package:vpmobil_wrapper/utils/loading_provider.dart';
@@ -45,29 +46,50 @@ class _HomePageState extends State<HomePage> {
         toolbarHeight: 60,
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(0),
-          child: Container(
-            height: 1,
-            color: theme.border
-          ),
+          child: Container(height: 1, color: theme.border),
         ),
         backgroundColor: theme.surface,
-        title: Row(
+        title: Stack(
           children: [
-            Expanded(child: 
-              Container(
-                margin: EdgeInsets.only(bottom: 10, top: 15),
-                child: Text(
-                  'Vertretungspläne',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 25,
-                    color: theme.accent,
-                    fontFamily: "Space Grotesk"
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    margin: EdgeInsets.only(bottom: 10, top: 15),
+                    child: Text(
+                      'Vertretungspläne',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 25,
+                        color: theme.accent,
+                        fontFamily: "Space Grotesk",
+                      ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                  width: 25,
+                  height: 30,
+                  color: Colors.transparent,
+                  margin: EdgeInsets.only(bottom: 10, top: 15),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const LogPage()),
+                      );
+                    },
+                    child: Icon(Icons.bug_report_rounded, color: Colors.white.withAlpha(180), size: 25),
+                  )
+                ),
+              ]
+            )
+          ]
         ),
       ),
       backgroundColor: theme.base,
@@ -83,25 +105,39 @@ class _HomePageState extends State<HomePage> {
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        BlankClassWidget(index: 1, isSet: savedClassesProvider.button1Set, title: savedClassesProvider.button1Title),
-                        BlankClassWidget(index: 2, isSet: savedClassesProvider.button2Set, title: savedClassesProvider.button2Title),
+                        BlankClassWidget(
+                          index: 1,
+                          isSet: savedClassesProvider.button1Set,
+                          title: savedClassesProvider.button1Title,
+                        ),
+                        BlankClassWidget(
+                          index: 2,
+                          isSet: savedClassesProvider.button2Set,
+                          title: savedClassesProvider.button2Title,
+                        ),
                       ],
                     );
-                  }
+                  },
                 ),
-                SizedBox(
-                  height: 40,
-                ),
+                SizedBox(height: 40),
                 Consumer<SavedClassesProvider>(
                   builder: (context, savedClassesProvider, _) {
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        BlankClassWidget(index: 3, isSet: savedClassesProvider.button3Set, title: savedClassesProvider.button3Title),
-                        BlankClassWidget(index: 4, isSet: savedClassesProvider.button4Set, title: savedClassesProvider.button4Title),
+                        BlankClassWidget(
+                          index: 3,
+                          isSet: savedClassesProvider.button3Set,
+                          title: savedClassesProvider.button3Title,
+                        ),
+                        BlankClassWidget(
+                          index: 4,
+                          isSet: savedClassesProvider.button4Set,
+                          title: savedClassesProvider.button4Title,
+                        ),
                       ],
                     );
-                  }
+                  },
                 ),
               ],
             ),
@@ -110,11 +146,29 @@ class _HomePageState extends State<HomePage> {
               children: [
                 Consumer<DataProvider>(
                   builder: (context, dataProvider, _) {
-                    if (dataProvider.lastRefresh == null) return Text("Daten wurden noch nicht geladen", textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: Colors.white, fontFamily: "Geist"));
-        
-                    String formattedDate = "${dataProvider.lastRefresh!.day.toString().padLeft(2, '0')}.${dataProvider.lastRefresh!.month.toString().padLeft(2, '0')}.${dataProvider.lastRefresh!.year.toString()} ${dataProvider.lastRefresh!.hour.toString().padLeft(2, '0')}:${dataProvider.lastRefresh!.minute.toString().padLeft(2, '0')}:${dataProvider.lastRefresh!.second.toString().padLeft(2, '0')}";
-                    return Text("Letzte Aktualisierung: $formattedDate", textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: Colors.white, fontFamily: "Geist"));
-                  }
+                    if (dataProvider.lastRefresh == null)
+                      return Text(
+                        "Daten wurden noch nicht geladen",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.white,
+                          fontFamily: "Geist",
+                        ),
+                      );
+
+                    String formattedDate =
+                        "${dataProvider.lastRefresh!.day.toString().padLeft(2, '0')}.${dataProvider.lastRefresh!.month.toString().padLeft(2, '0')}.${dataProvider.lastRefresh!.year.toString()} ${dataProvider.lastRefresh!.hour.toString().padLeft(2, '0')}:${dataProvider.lastRefresh!.minute.toString().padLeft(2, '0')}:${dataProvider.lastRefresh!.second.toString().padLeft(2, '0')}";
+                    return Text(
+                      "Letzte Aktualisierung: $formattedDate",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.white,
+                        fontFamily: "Geist",
+                      ),
+                    );
+                  },
                 ),
                 SizedBox(height: 25),
                 ElevatedButton(
@@ -130,10 +184,17 @@ class _HomePageState extends State<HomePage> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: Text("Aktualisieren", style: TextStyle(fontFamily: "Geist", fontSize: 15, letterSpacing: 0.5)),
+                  child: Text(
+                    "Aktualisieren",
+                    style: TextStyle(
+                      fontFamily: "Geist",
+                      fontSize: 15,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),

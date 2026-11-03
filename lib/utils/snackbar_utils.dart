@@ -6,7 +6,7 @@ void hideSnackBarIfVisible() {
   final messengerState = rootScaffoldMessengerKey.currentState;
 
   if (messengerState != null) {
-    messengerState.hideCurrentSnackBar(); 
+    messengerState.hideCurrentSnackBar();
   }
 }
 
@@ -80,7 +80,7 @@ void showErrorNoDataSnackbar() {
 
 void showErrorLoadingClassesSnackbar() {
   hideSnackBarIfVisible();
-  
+
   rootScaffoldMessengerKey.currentState?.showSnackBar(
     SnackBar(
       behavior: SnackBarBehavior.floating,
@@ -111,35 +111,37 @@ void showErrorLoadingClassesSnackbar() {
   );
 }
 
-void showGeneralErrorSnackBar() {
+void showGeneralErrorSnackBar(String text) {
   hideSnackBarIfVisible();
-  
+  final theme = Theme.of(rootScaffoldMessengerKey.currentState!.context).extension<AppColors>()!;
+
   rootScaffoldMessengerKey.currentState?.showSnackBar(
     SnackBar(
       behavior: SnackBarBehavior.floating,
-      dismissDirection: DismissDirection.up,
+      dismissDirection: DismissDirection.horizontal,
       margin: EdgeInsets.only(
-        bottom: 15,
-        left: 15,
-        right: 15,
+        bottom: 30,
+        left: 30,
+        right: 30,
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
       content: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Icon(Icons.warning_rounded , color: Colors.orange, size: 30),
+          Icon(Icons.error_outlined , color: Colors.red, size: 30),
           Text(
-            'Es gab einen Fehler',
+            text,
             style: TextStyle(
-              color: Colors.orange,
-              fontFamily: "Space Grotesk"
+              color: Colors.red,
+              fontSize: 14,
+              fontFamily: "Geist"
             ),
             textAlign: TextAlign.center,
           ),
         ],
       ),
       duration: Duration(seconds: 2),
-      backgroundColor: Color.fromARGB(255, 15, 15, 15),
+      backgroundColor: theme.component,
     ),
   );
 }

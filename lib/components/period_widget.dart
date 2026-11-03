@@ -176,10 +176,10 @@ class PeriodWidget extends StatelessWidget {
                                             period.lehrerKuerzel,
                                             textAlign: TextAlign.center,
                                             style: TextStyle(
-                                              color: rowColor(
+                                              color: period.lehrerAenderung == TeacherChange.geaendert ? rowColor(
                                                 period,
                                                 theme,
-                                              )["text"],
+                                              )["text"] : theme.textSecondary,
                                             ),
                                           ),
                                         ),
@@ -196,10 +196,10 @@ class PeriodWidget extends StatelessWidget {
                                             child: Text(
                                               period.raum,
                                               style: TextStyle(
-                                                color: rowColor(
+                                                color: period.raumAenderung == RoomChange.geaendert ? rowColor(
                                                   period,
                                                   theme,
-                                                )["text"],
+                                                )["text"] : theme.textSecondary,
                                               ),
                                               textAlign: TextAlign.center,
                                             ),

@@ -1,0 +1,23 @@
+[
+  {
+    "adapter": "Flutter",
+    "label": "Launch Android Phone",
+    "request": "launch",
+    "program": "lib/main.dart",
+    "deviceId": "NBKVBI6TZ5FM65MZ"
+  },
+  {
+    "adapter": "Flutter",
+    "label": "Launch Android Emulator",
+    "request": "launch",
+    "program": "lib/main.dart",
+    "deviceId": "emulator-5554"
+  },
+  {
+      "adapter": "Flutter",
+      "label": "Attach to Running App",
+      "request": "attach",
+      "program": "lib/main.dart",
+      "vmServiceUri": "ws://127.0.0.1:11252/WVH8rv4FHfY=/"
+  }
+]

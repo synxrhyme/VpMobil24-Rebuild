@@ -7,7 +7,6 @@ import 'package:vpmobil_wrapper/theme.dart';
 import 'package:vpmobil_wrapper/utils/data_provider.dart';
 import 'package:vpmobil_wrapper/utils/time_utils.dart';
 import 'package:vpmobil_wrapper/utils/loading_provider.dart';
-import 'package:vpmobil_wrapper/utils/snackbar_utils.dart';
 
 class TimetablePage extends StatefulWidget {
   final String title;
@@ -149,11 +148,7 @@ class _TimetablePageState extends State<TimetablePage> {
                     if (!context.mounted) return;
                     context.read<LoadingService>().show();
 
-                    bool success = await context.read<DataProvider>().reload();
-
-                    if (!success && context.mounted) {
-                      showErrorNoDataSnackbar();
-                    }
+                    await context.read<DataProvider>().reload();
 
                     if (!context.mounted) return;
                     context.read<LoadingService>().hide();

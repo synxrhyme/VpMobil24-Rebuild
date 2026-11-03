@@ -8,7 +8,7 @@ class TimeUtils {
   TimeUtils() {
     tz.initializeTimeZones();
   }
- 
+
   tz1.TZDateTime nowBerlin() {
     return tz1.TZDateTime.now(berlin);
   }
@@ -64,4 +64,12 @@ TimeOfDay parseTimeOfDay(String input) {
   int minute = int.parse(parts[1]);
 
   return TimeOfDay(hour: hour, minute: minute);
+}
+
+Future<List<DateTime>> getRequiredDates(DateTime newestDate) async {
+  DateTime now = DateTime.now();
+  final DateTime mondayLastWeek = DateTime(now.year, now.month, now.day - (now.weekday - 1) - 7);
+
+  List<DateTime> requiredDates = getWeekdays(mondayLastWeek, newestDate);
+  return requiredDates;
 }
