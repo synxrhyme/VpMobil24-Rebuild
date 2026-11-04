@@ -3,7 +3,9 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:vpmobil_wrapper/utils/plan_file_entry.dart';
 
-Future<List<PlanFileEntry>> fetchPlanDirectory(Map<String, dynamic> params) async {
+Future<List<PlanFileEntry>> fetchPlanDirectory(
+  Map<String, dynamic> params,
+) async {
   final String user = params["user"];
   final String password = params["password"];
   final String schoolNumber = params["school_number"];
@@ -16,7 +18,8 @@ Future<List<PlanFileEntry>> fetchPlanDirectory(Map<String, dynamic> params) asyn
     ),
   );
 
-  request.headers['Authorization'] ='Basic ${base64Encode(utf8.encode('$user:$password'))}';
+  request.headers['Authorization'] =
+      'Basic ${base64Encode(utf8.encode('$user:$password'))}';
   request.fields['pw'] = "I N D I W A R E";
   request.fields['art'] = 'mobk';
 
@@ -30,11 +33,7 @@ Future<List<PlanFileEntry>> fetchPlanDirectory(Map<String, dynamic> params) asyn
   final body = utf8.decode(response.bodyBytes, allowMalformed: true);
   final preview = body.length > 200 ? body.substring(0, 200) : body;
 
-  debugPrint(
-    'vpdir: HTTP ${response.statusCode}, '
-    '${response.headers['content-type']}, ${body.length} Zeichen',
-  );
-  debugPrint('vpdir Anfang: $preview');
+  debugPrint('vpdir.php: Planverzeichnis erfolgreich geladen');
 
   if (body.trim().isEmpty) {
     throw Exception('vpdir.php: leere Antwort (pw oder Zugangsdaten falsch?)');
@@ -51,5 +50,6 @@ Future<List<PlanFileEntry>> fetchPlanDirectory(Map<String, dynamic> params) asyn
   }
 
   entries.sort((a, b) => a.planDate!.compareTo(b.planDate!));
+  debugPrint('vpdir.php: ${entries.length} Plandateien verfügbar');
   return entries;
 }

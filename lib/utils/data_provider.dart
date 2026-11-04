@@ -26,6 +26,11 @@ class DataProvider extends ChangeNotifier {
 
   Map<DateTime, XmlDocument?> get data => _data;
   List<DateTime> get savedDates => _savedDates;
+
+  Map<DateTime, DateTime> _modifiedDates = {};
+  Map<DateTime, DateTime> get modifiedDates => _modifiedDates;
+  String _modifiedKey(DateTime date) => "${date.toIso8601String()} - modified";
+
   List<String> get classes => _klassen;
   Map<String, List<ChoosableSubject>> get subjectsForClasses =>
       _subjectsForClasses ?? {};
@@ -38,7 +43,7 @@ class DataProvider extends ChangeNotifier {
   }
 
   Future<void> _initialize() async {
-    debugPrint("initializing data provider...");
+    debugPrint("Data provider initialisieren...");
 
     String? lastRefreshString = await getString("last_refresh");
     if (lastRefreshString != null)
@@ -47,14 +52,20 @@ class DataProvider extends ChangeNotifier {
     String? newestKnownDateString = await getString("newest_known_date");
     if (newestKnownDateString != null)
       _newestKnownDate = DateTime.parse(newestKnownDateString);
-    debugPrint("newest known date: $newestKnownDateString");
+    debugPrint(
+      "Neuestes bekanntes Datum: ${newestKnownDate!.day}.${newestKnownDate!.month}.${newestKnownDate!.year}",
+    );
 
     List<String>? savedDateStrings = await loadList("saved_dates");
     if (savedDateStrings != null)
       _savedDates = savedDateStrings
           .map((dateString) => DateTime.parse(dateString))
           .toList();
-    debugPrint("saved dates: $savedDateStrings");
+
+    debugPrint("Gespeicherte Pläne:");
+    for (DateTime date in _savedDates) {
+      debugPrint("${date.day}.${date.month}.${date.year}");
+    }
 
     List<String>? klassen = await loadList("classes");
     if (klassen != null) _klassen = klassen;
@@ -84,16 +95,22 @@ class DataProvider extends ChangeNotifier {
     _subjectsForClasses = subjectsForClasses;
 
     _data = {};
+    _modifiedDates = {};
     for (DateTime date in _savedDates) {
-      debugPrint("loading from memory: ${date.toIso8601String()}");
+      debugPrint("Aus dem Speicher laden: ${date.day}.${date.month}.${date.year}");
       _data[date] = await loadPersistentData(date.toIso8601String());
+
+      final String? modifiedString = await getString(_modifiedKey(date));
+      final DateTime? modified = modifiedString == null
+          ? null
+          : DateTime.tryParse(modifiedString);
+      if (modified != null) _modifiedDates[date] = modified;
     }
 
     notifyListeners();
   }
 
   Future<void> reload() async {
-    // bool: success
     try {
       final String user = dotenv.get("user");
       final String password = dotenv.get("password");
@@ -166,13 +183,37 @@ class DataProvider extends ChangeNotifier {
       setString("newest_known_date", newestDate.toIso8601String());
       _newestKnownDate = newestDate;
 
-      final List<DateTime> availableDates = availableFiles
-          .map((e) => e.planDate)
-          .whereType<DateTime>()
-          .toList();
+      final List<DateTime> datesToFetch = [];
+
+      for (final e in availableFiles) {
+        final DateTime? date = e.planDate;
+        if (date == null) continue;
+
+        final DateTime? stored = _modifiedDates[date];
+
+        if (stored == null) {
+          debugPrint(
+            "NEU          ${e.fileName}: kein lokaler Stempel, remote=${e.modified}",
+          );
+          datesToFetch.add(date);
+        } else if (e.modified == null || e.modified!.isAfter(stored)) {
+          debugPrint(
+            "GEÄNDERT     ${e.fileName}: lokal=$stored, remote=${e.modified}",
+          );
+          datesToFetch.add(date);
+        } else {
+          debugPrint(
+            "UNVERÄNDERT  ${e.fileName}: lokal=$stored, remote=${e.modified}",
+          );
+        }
+      }
+
+      debugPrint(
+        "Sync: ${datesToFetch.length} von ${availableFiles.length} Dateien geladen",
+      );
 
       final Map<DateTime, XmlDocument?> allData = await fetchDates(
-        availableDates,
+        datesToFetch,
         user,
         password,
         schoolNumber,
@@ -181,6 +222,22 @@ class DataProvider extends ChangeNotifier {
       for (MapEntry<DateTime, XmlDocument?> entry in allData.entries) {
         if (entry.value == null) continue;
         await savePersistentData(entry.key.toIso8601String(), entry.value!);
+        final matchingPlanFileEntry = availableFiles
+            .where((e) => e.planDate == entry.key)
+            .firstOrNull;
+        if (matchingPlanFileEntry != null &&
+            matchingPlanFileEntry.planDate != null &&
+            matchingPlanFileEntry.modified != null) {
+          await setString(
+            _modifiedKey(matchingPlanFileEntry.planDate!),
+            matchingPlanFileEntry.modified!.toIso8601String(),
+          );
+          _modifiedDates[entry.key] = matchingPlanFileEntry.modified!;
+        } else {
+          debugPrint(
+            "matchingPlanFileEntry or matchingPlanFileEntry.planDate or matchingPlanFileEntry.modified == null",
+          );
+        }
 
         if (!_savedDates.contains(entry.key)) _savedDates.add(entry.key);
         List<String> savedDatesStringList = _savedDates
@@ -191,7 +248,15 @@ class DataProvider extends ChangeNotifier {
       }
 
       List<String>? savedDates = await loadList("saved_dates");
-      debugPrint("saved_dates_list: ${savedDates.toString()}");
+      debugPrint("Gespeicherte Pläne: ");
+
+      if (savedDates == null) {
+        debugPrint("savedDates == null");
+      } else {
+        for (DateTime date in _savedDates) {
+          debugPrint("${date.day}.${date.month}.${date.year}");
+        }
+      }
 
       _data = {};
       for (DateTime date in _savedDates) {
@@ -278,6 +343,9 @@ class DataProvider extends ChangeNotifier {
           "saved_dates",
           _savedDates.map((dateTime) => dateTime.toIso8601String()).toList(),
         );
+
+        _modifiedDates.remove(date);
+        deletePrefValue(_modifiedKey(date));
 
         _data = {};
         for (DateTime date in _savedDates) {
